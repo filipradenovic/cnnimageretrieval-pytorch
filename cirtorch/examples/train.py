@@ -133,7 +133,7 @@ def main():
     directory += "_{}_m{:.2f}".format(args.loss, args.loss_margin)
     directory += "_{}_lr{:.1e}_wd{:.1e}".format(args.optimizer, args.lr, args.weight_decay)
     directory += "_nnum{}_qsize{}_psize{}".format(args.neg_num, args.query_size, args.pool_size)
-    directory += "_bsize{}_imsize".format(args.batch_size, args.image_size)
+    directory += "_bsize{}_imsize{}".format(args.batch_size, args.image_size)
 
     args.directory = os.path.join(args.directory, directory)
     print(">> Creating directory if it does not exist:\n>> '{}'".format(args.directory))
