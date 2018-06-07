@@ -5,7 +5,7 @@ This is a Python toolbox that implements the training and testing of the approac
 
 **Fine-tuning CNN Image Retrieval with No Human Annotation**,  
 Radenović F., Tolias G., Chum O., 
-arXiv 2017 [[arXiv](https://arxiv.org/abs/1711.02512)]
+TPAMI 2018 [[arXiv](https://arxiv.org/abs/1711.02512)]
 
 **CNN Image Retrieval Learns from BoW: Unsupervised Fine-Tuning with Hard Examples**,  
 Radenović F., Tolias G., Chum O., 
@@ -32,11 +32,11 @@ In order to run this toolbox you will need:
 
 ## Usage
 
-Navigate (```cd```) to the root of the toolbox [YOUR_CIRTORCH_ROOT].
+Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 
 ### Training
 
-Example training script is located in YOUR_CIRTORCH_ROOT/cirtorch/examples/train.py
+Example training script is located in ```YOUR_CIRTORCH_ROOT/cirtorch/examples/train.py```
 ```
 python3 -m cirtorch.examples.train.py [-h] [--training-dataset DATASET] [--no-val]
                 [--test-datasets DATASETS] [--test-whiten DATASET]
@@ -54,7 +54,7 @@ For detailed explanation of the options run:
 python3 -m cirtorch.examples.train.py -h
 ```
 
-For example, to train our best network described in the latest paper run the following command. After each epoch, the fine-tuned network will be tested on Oxford and Paris datasets:
+For example, to train our best network described in the TPAMI 2018 paper run the following command. After each epoch, the fine-tuned network will be tested on Oxford and Paris datasets:
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
             --test-datasets 'oxford5k,paris6k' --arch 'resnet101' --pool 'gem' --loss 'contrastive' 
@@ -76,7 +76,7 @@ python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-datas
 
 ### Testing
 
-Example testing script is located in YOUR_CIRTORCH_ROOT/cirtorch/examples/test.py
+Example testing script is located in ```YOUR_CIRTORCH_ROOT/cirtorch/examples/test.py```
 ```
 python3 -m cirtorch.examples.test.py [-h] (--network-path NETWORK | --network-offtheshelf NETWORK)
                [--datasets DATASETS] [--image-size N] [--multiscale]
@@ -88,7 +88,34 @@ For detailed explanation of the options run:
 python3 -m cirtorch.examples.test.py -h
 ```
 
-To evaluate trained network using single scale and without learning whitening:
+
+##### Pretrained networks
+
+We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. To evaluate them run:
+```
+python3 -m cirtorch.examples.test --gpu-id '0' --network-path 'retrievalSfM120k-resnet101-gem' 
+                --datasets 'oxford5k,paris6k,roxford5k,rparis6k' 
+                --whitening 'retrieval-SfM-120k' --multiscale
+```
+or
+```
+python3 -m cirtorch.examples.test --gpu-id '0' --network-path 'retrievalSfM120k-vgg16-gem' 
+                --datasets 'oxford5k,paris6k,roxford5k,rparis6k' 
+                --whitening 'retrieval-SfM-120k' --multiscale
+```
+Performance comparison with the networks used in the paper, trained with our [CNN Image Retrieval in MatConvNet](https://github.com/filipradenovic/cnnimageretrieval):
+
+| Model | Oxford | Paris | ROxf (M) | RPar (M) | ROxf (H) | RPar (H) |
+|:------|:------:|:------:|:------:|:------:|:------:|:------:|
+| VGG16-GeM (MatConvNet) | 87.9 | 87.7 | 61.9 | 69.3 | 33.7 | 44.3 |
+| VGG16-GeM (PyTorch) | 87.2 | 87.8 | 60.5 | 69.3 | 32.4 | 44.3 |
+| ResNet101-GeM (MatConvNet) | 87.8 | 92.7 | 64.7 | 77.2 | 38.5 | 56.3 |
+| ResNet101-GeM (PyTorch) | 88.2 | 92.5 | 65.3 | 76.6 | 40.0 | 55.2 |
+
+
+##### Trained networks
+
+To evaluate your trained network using single scale and without learning whitening:
 ```
 python3 -m cirtorch.examples.test --gpu-id '0' --network-path YOUR_NETWORK_PATH 
                 --datasets 'oxford5k,paris6k,roxford5k,rparis6k'
@@ -100,6 +127,8 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-path YOUR_NETWORK_PATH
                 --datasets 'oxford5k,paris6k,roxford5k,rparis6k'
                 --whitening 'retrieval-SfM-120k' --multiscale
 ```
+
+##### Off-the-shelf networks
 
 Off-the-shelf networks can be evaluated as well, for example:
 ```
@@ -118,8 +147,8 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 @inproceedings{RTC17,
  title={Fine-tuning {CNN} Image Retrieval with No Human Annotation},
  author={Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
- booktitle = {arXiv:1711.02512},
- year={2017}
+ booktitle = {TPAMI},
+ year={2018}
 }
 ```
 ```
@@ -131,7 +160,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 }
 ```
 
-### Revisited annotations for Oxford and Paris ('roxford5k' and 'rparis6k')
+### Revisited benchmarks for Oxford and Paris ('roxford5k' and 'rparis6k')
 ```
 @inproceedings{RITAC18,
  author = {Radenovi{\'c}, F. and Iscen, A. and Tolias, G. and Avrithis, Y. and Chum, O.},

@@ -7,6 +7,7 @@ import pickle
 import numpy as np
 
 import torch
+from torch.utils.model_zoo import load_url
 from torch.autograd import Variable
 from torchvision import transforms
 
@@ -17,6 +18,11 @@ from cirtorch.utils.download import download_train, download_test
 from cirtorch.utils.whiten import whitenlearn, whitenapply
 from cirtorch.utils.evaluate import compute_map_and_print
 from cirtorch.utils.general import get_data_root, htime
+
+PRETRAINED = {
+    'retrievalSfM120k-vgg16-gem'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/retrievalSfM120k-vgg16-gem-b4dcdc6.pth',
+    'retrievalSfM120k-resnet101-gem'    : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/retrievalSfM120k-resnet101-gem-b80fb85.pth',
+}
 
 datasets_names = ['oxford5k,paris6k', 'roxford5k,rparis6k', 'oxford5k,paris6k,roxford5k,rparis6k']
 whitening_names = ['retrieval-SfM-30k', 'retrieval-SfM-120k']
@@ -63,10 +69,19 @@ def main():
     # loading network from path
     if args.network_path is not None:
         print(">> Loading network:\n>>>> '{}'".format(args.network_path))
-        state = torch.load(args.network_path)
+        if args.network_path in PRETRAINED:
+            # pretrained networks (downloaded automatically)
+            state = load_url(PRETRAINED[args.network_path], model_dir=os.path.join(get_data_root(), 'networks'))
+        else:
+            state = torch.load(args.network_path)
         net = init_network(model=state['meta']['architecture'], pooling=state['meta']['pooling'], whitening=state['meta']['whitening'], 
                             mean=state['meta']['mean'], std=state['meta']['std'], pretrained=False)
         net.load_state_dict(state['state_dict'])
+        
+        # if whitening is precomputed
+        if 'Lw' in state['meta']:
+            net.meta['Lw'] = state['meta']['Lw']
+        
         print(">>>> loaded network: ")
         print(net.meta_repr())
 
@@ -110,25 +125,36 @@ def main():
     if args.whitening is not None:
         start = time.time()
 
-        print('>> {}: Learning whitening...'.format(args.whitening))
+        if 'Lw' in net.meta and args.whitening in net.meta['Lw']:
+            
+            print('>> {}: Whitening is precomputed, loading it...'.format(args.whitening))
+            
+            if args.multiscale:
+                Lw = net.meta['Lw'][args.whitening]['ms']
+            else:
+                Lw = net.meta['Lw'][args.whitening]['ss']
 
-        # loading db
-        db_root = os.path.join(get_data_root(), 'train', args.whitening)
-        ims_root = os.path.join(db_root, 'ims')
-        db_fn = os.path.join(db_root, '{}-whiten.pkl'.format(args.whitening))
-        with open(db_fn, 'rb') as f:
-            db = pickle.load(f)
-        images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
+        else:
 
-        # extract whitening vectors
-        print('>> {}: Extracting...'.format(args.whitening))
-        wvecs = extract_vectors(net, images, args.image_size, transform, ms=ms, msp=msp)
-        
-        # learning whitening 
-        print('>> {}: Learning...'.format(args.whitening))
-        wvecs = wvecs.numpy()
-        m, P = whitenlearn(wvecs, db['qidxs'], db['pidxs'])
-        Lw = {'m': m, 'P': P}
+            print('>> {}: Learning whitening...'.format(args.whitening))
+
+            # loading db
+            db_root = os.path.join(get_data_root(), 'train', args.whitening)
+            ims_root = os.path.join(db_root, 'ims')
+            db_fn = os.path.join(db_root, '{}-whiten.pkl'.format(args.whitening))
+            with open(db_fn, 'rb') as f:
+                db = pickle.load(f)
+            images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
+
+            # extract whitening vectors
+            print('>> {}: Extracting...'.format(args.whitening))
+            wvecs = extract_vectors(net, images, args.image_size, transform, ms=ms, msp=msp)
+            
+            # learning whitening 
+            print('>> {}: Learning...'.format(args.whitening))
+            wvecs = wvecs.numpy()
+            m, P = whitenlearn(wvecs, db['qidxs'], db['pidxs'])
+            Lw = {'m': m, 'P': P}
 
         print('>> {}: elapsed time: {}'.format(args.whitening, htime(time.time()-start)))
     else:
