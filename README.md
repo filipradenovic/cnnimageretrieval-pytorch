@@ -89,7 +89,7 @@ python3 -m cirtorch.examples.test.py -h
 ```
 
 
-##### Pretrained networks
+#### Pretrained networks
 
 We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. To evaluate them run:
 ```
@@ -113,7 +113,7 @@ Performance comparison with the networks used in the paper, trained with our [CN
 | ResNet101-GeM (PyTorch) | 88.2 | 92.5 | 65.3 | 76.6 | 40.0 | 55.2 |
 
 
-##### Trained networks
+#### Trained networks
 
 To evaluate your trained network using single scale and without learning whitening:
 ```
@@ -128,7 +128,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-path YOUR_NETWORK_PATH
                 --whitening 'retrieval-SfM-120k' --multiscale
 ```
 
-##### Off-the-shelf networks
+#### Off-the-shelf networks
 
 Off-the-shelf networks can be evaluated as well, for example:
 ```
