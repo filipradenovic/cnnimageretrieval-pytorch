@@ -144,7 +144,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 ### Training (fine-tuning) convolutional neural networks 
 ```
-@article{RTC17,
+@article{RTC18,
  title = {Fine-tuning {CNN} Image Retrieval with No Human Annotation},
  author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
  journal = {TPAMI},
