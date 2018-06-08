@@ -54,19 +54,19 @@ For detailed explanation of the options run:
 python3 -m cirtorch.examples.train.py -h
 ```
 
-For example, to train our best network described in the TPAMI 2018 paper run the following command. After each epoch, the fine-tuned network will be tested on Oxford and Paris datasets:
+For example, to train our best network described in the TPAMI 2018 paper run the following command. After each epoch, the fine-tuned network will be tested on the revisited Oxford and Paris benchmarks:
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
-            --test-datasets 'oxford5k,paris6k' --arch 'resnet101' --pool 'gem' --loss 'contrastive' 
+            --test-datasets 'roxford5k,rparis6k' --arch 'resnet101' --pool 'gem' --loss 'contrastive' 
             --loss-margin 0.85 --optimizer 'adam' --lr 1e-6 --neg-num 5 --query-size=2000 
             --pool-size=20000 --batch-size 5 --image-size 362
 ```
 
-Networks can be evaluated with learned whitening after each epoch. Also, revisited annotations for Oxford and Paris can be used. To achieve this run the following command. Note that this will significantly slow down the entire training procedure, and you can evaluate networks with learned whitening later on using the example test script.
+Networks can be evaluated with learned whitening after each epoch. To achieve this run the following command. Note that this will significantly slow down the entire training procedure, and you can evaluate networks with learned whitening later on using the example test script.
 
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
-            --test-datasets 'oxford5k,paris6k,roxford5k,rparis6k' --test-whiten 'retrieval-SfM-30k' 
+            --test-datasets 'roxford5k,rparis6k' --test-whiten 'retrieval-SfM-30k' 
             --arch 'resnet101' --pool 'gem' --loss 'contrastive' --loss-margin 0.85 
             --optimizer 'adam' --lr 1e-6 --neg-num 5 --query-size=2000 --pool-size=20000 
             --batch-size 5 --image-size 362
@@ -89,7 +89,7 @@ python3 -m cirtorch.examples.test.py -h
 ```
 
 
-#### Pretrained networks
+#### Our pretrained networks
 
 We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. To evaluate them run:
 ```
@@ -113,7 +113,7 @@ Performance comparison with the networks used in the paper, trained with our [CN
 | ResNet101-GeM (PyTorch) | 88.2 | 92.5 | 65.3 | 76.6 | 40.0 | 55.2 |
 
 
-#### Trained networks
+#### Your trained networks
 
 To evaluate your trained network using single scale and without learning whitening:
 ```
@@ -144,11 +144,11 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 ### Training (fine-tuning) convolutional neural networks 
 ```
-@inproceedings{RTC17,
- title={Fine-tuning {CNN} Image Retrieval with No Human Annotation},
- author={Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
- booktitle = {TPAMI},
- year={2018}
+@article{RTC17,
+ title = {Fine-tuning {CNN} Image Retrieval with No Human Annotation},
+ author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
+ journal = {TPAMI},
+ year = {2018}
 }
 ```
 ```
@@ -165,7 +165,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 @inproceedings{RITAC18,
  author = {Radenovi{\'c}, F. and Iscen, A. and Tolias, G. and Avrithis, Y. and Chum, O.},
  title = {Revisiting Oxford and Paris: Large-Scale Image Retrieval Benchmarking},
- booktitle={CVPR},
- year={2018}
+ booktitle = {CVPR},
+ year = {2018}
 }
 ```
