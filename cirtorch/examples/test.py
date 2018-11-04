@@ -42,7 +42,7 @@ parser.add_argument('--datasets', '-d', metavar='DATASETS', default='oxford5k,pa
                    help='comma separated list of test datasets: ' + 
                         ' | '.join(datasets_names) + 
                         ' (default: oxford5k,paris6k)')
-parser.add_argument('--image-size', '-imsize', default=1024, type=int, metavar='N',
+parser.add_argument('--image_size', '-imsize', default=1024, type=int, metavar='N',
                     help='maximum size of longer image side used for testing (default: 1024)')
 parser.add_argument('--multiscale', '-ms', dest='multiscale', action='store_true',
                     help='use multiscale vectors for testing')
