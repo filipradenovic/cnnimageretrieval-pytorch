@@ -166,7 +166,7 @@ class TuplesDataset(data.Dataset):
         qvecs = torch.Tensor(net.meta['outputdim'], len(self.qidxs)).cuda()
         for i, input in enumerate(loader):
             print('\r>>>> {}/{} done...'.format(i+1, len(self.qidxs)), end='')
-            qvecs[:, i] = net(Variable(input.cuda())).data
+            qvecs[:, i] = net(Variable(input.cuda())).data.squeeze()                 ### squeeze is added
         print('')
 
         print('>> Extracting descriptors for negative pool...')
@@ -177,7 +177,7 @@ class TuplesDataset(data.Dataset):
         poolvecs = torch.Tensor(net.meta['outputdim'], len(idxs2images)).cuda()
         for i, input in enumerate(loader):
             print('\r>>>> {}/{} done...'.format(i+1, len(idxs2images)), end='')
-            poolvecs[:, i] = net(Variable(input.cuda())).data
+            poolvecs[:, i] = net(Variable(input.cuda())).data.squeeze()           ### squeeze added
         print('')
 
         print('>> Searching for hard negatives...')

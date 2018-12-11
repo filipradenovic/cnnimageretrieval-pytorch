@@ -56,10 +56,10 @@ parser.add_argument('--test-whiten', metavar='DATASET', default='', choices=test
                         ' (default: None)')
 
 # network architecture and initialization options
-parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet101', choices=model_names,
+parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet50', choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
-                        ' (default: resnet101)')
+                        ' (default: resnet50)')
 parser.add_argument('--pool', '-p', metavar='POOL', default='gem', choices=pool_names,
                     help='pooling options: ' +
                         ' | '.join(pool_names) +
@@ -237,7 +237,7 @@ def main():
         )
 
     # evaluate the network before starting
-    test(args.test_datasets, model)
+    # test(args.test_datasets, model)               ### no need for first eval
 
     for epoch in range(start_epoch, args.epochs):
 
@@ -256,8 +256,8 @@ def main():
         loss = train(train_loader, model, criterion, optimizer, epoch)
 
         # evaluate on validation set
-        if args.val:
-            loss = validate(val_loader, model, criterion, epoch)
+        # if args.val:
+        #     loss = validate(val_loader, model, criterion, epoch)
 
         # evaluate on test datasets
         test(args.test_datasets, model)
@@ -305,7 +305,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                 input_var = torch.autograd.Variable(input[q][imi].cuda())
 
                 # compute output
-                output[:, imi] = model(input_var)
+                output[:, imi] = model(input_var).squeeze()                 ### added squeeze
 
             # compute loss for this batch and do backward pass for a batch
             # each backward pass gradients will be accumulated
@@ -356,7 +356,7 @@ def validate(val_loader, model, criterion, epoch):
                 input_var = torch.autograd.Variable(input[q][imi].cuda())
 
                 # compute output
-                output[:, q*ni + imi] = model(input_var)
+                output[:, q*ni + imi] = model(input_var).squeeze()  ### added squeeze
 
         target_var = torch.autograd.Variable(torch.cat(target).cuda())
         loss = criterion(output, target_var)

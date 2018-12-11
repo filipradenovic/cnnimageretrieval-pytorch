@@ -85,9 +85,9 @@ def l2n(x, eps=1e-6):
 
 def contrastive_loss(x, label, margin=0.7, eps=1e-6):
     # x is D x N
-    dim = x.size(0) # D
-    nq = torch.sum(label.data==-1) # number of tuples
-    S = x.size(1) // nq # number of images per tuple including query: 1+1+n
+    dim = int(x.size(0)) # D
+    nq = int(torch.sum(label.data==-1).cpu()) # number of tuples  ### make it double for next division
+    S = int(x.size(1)) // nq # number of images per tuple including query: 1+1+n  ### converted to float divide and make it integer
 
     x1 = x[:, ::S].permute(1,0).repeat(1,S-1).view((S-1)*nq,dim).permute(1,0)
     idx = [i for i in range(len(label)) if label.data[i] != -1]
