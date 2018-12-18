@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 def whitenapply(X, m, P, dimensions=None):
@@ -34,7 +35,7 @@ def whitenlearn(X, qidxs, pidxs):
     m = X[:, qidxs].mean(axis=1, keepdims=True)
     df = X[:, qidxs] - X[:, pidxs]
     S = np.dot(df, df.T) / df.shape[1]
-    P = np.linalg.inv(np.linalg.cholesky(S))
+    P = np.linalg.inv(cholesky(S))
     df = np.dot(P, X-m)
     D = np.dot(df, df.T)
     eigval, eigvec = np.linalg.eig(D)
@@ -45,3 +46,20 @@ def whitenlearn(X, qidxs, pidxs):
     P = np.dot(eigvec.T, P)
 
     return m, P
+
+def cholesky(S):
+    # Cholesky decomposition
+    # with adding a small value on the diagonal
+    # until matrix is positive definite
+    alpha = 0
+    while 1:
+        try:
+            L = np.linalg.cholesky(S + alpha*np.eye(*S.shape))
+            return L
+        except:
+            if alpha == 0:
+                alpha = 1e-10
+            else:
+                alpha *= 10
+            print(">>>> {}::cholesky: Matrix is not positive definite, adding {:.0e} on the diagonal"
+                .format(os.path.basename(__file__), alpha))
