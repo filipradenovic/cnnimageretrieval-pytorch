@@ -48,10 +48,13 @@ class ImagesFromList(data.Dataset):
         """
         path = self.images_fn[index]
         img = self.loader(path)
+
         if self.bbxs:
             img = img.crop(self.bbxs[index])
+
         if self.imsize is not None:
             img = imresize(img, self.imsize)
+
         if self.transform is not None:
             img = self.transform(img)
 
@@ -99,7 +102,6 @@ class ImagesFromDataList(data.Dataset):
             img = self.transform(img)
 
         if len(img.size()):
-            # img = img.repeat(3,1,1)
             img = img.unsqueeze(0)
 
         return img
