@@ -1,11 +1,10 @@
 import os
 import pickle
+import pdb
 
 import torch
 import torch.utils.data as data
-from torch.autograd import Variable
 
-from cirtorch.networks.imageretrievalnet import extract_vectors
 from cirtorch.datasets.datahelpers import default_loader, imresize, cid2filename
 from cirtorch.datasets.genericdataset import ImagesFromList
 from cirtorch.utils.general import get_data_root
@@ -45,21 +44,41 @@ class TuplesDataset(data.Dataset):
         if not (mode == 'train' or mode == 'val'):
             raise(RuntimeError("MODE should be either train or val, passed as string"))
 
-        # setting up paths
-        data_root = get_data_root()
-        db_root = os.path.join(data_root, 'train', name)
-        ims_root = os.path.join(db_root, 'ims')
+        if name.startswith('retrieval-SfM'):
+            # setting up paths
+            data_root = get_data_root()
+            db_root = os.path.join(data_root, 'train', name)
+            ims_root = os.path.join(db_root, 'ims')
+    
+            # loading db
+            db_fn = os.path.join(db_root, '{}.pkl'.format(name))
+            with open(db_fn, 'rb') as f:
+                db = pickle.load(f)[mode]
+    
+            # setting fullpath for images
+            self.images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
 
-        # loading db
-        db_fn = os.path.join(db_root, '{}.pkl'.format(name))
-        with open(db_fn, 'rb') as f:
-            db = pickle.load(f)[mode]
+        elif name.startswith('google-landmark-recognition'):
+            ## TODO: NOT IMPLEMENTED YET PROPOERLY (WITH AUTOMATIC DOWNLOAD)
+
+            # setting up paths
+            db_root = '/mnt/fry2/users/datasets/landmarkscvprw18/recognition/'
+            ims_root = os.path.join(db_root, 'images', 'train')
+    
+            # loading db
+            db_fn = os.path.join(db_root, '{}.pkl'.format(name))
+            with open(db_fn, 'rb') as f:
+                db = pickle.load(f)[mode]
+    
+            # setting fullpath for images
+            self.images = [os.path.join(ims_root, db['cids'][i]+'.jpg') for i in range(len(db['cids']))]
+        else:
+            raise(RuntimeError("Unknown dataset name!"))
 
         # initializing tuples dataset
         self.name = name
         self.mode = mode
         self.imsize = imsize
-        self.images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
         self.clusters = db['cluster']
         self.qpool = db['qidxs']
         self.ppool = db['pidxs']
@@ -80,6 +99,8 @@ class TuplesDataset(data.Dataset):
 
         self.transform = transform
         self.loader = loader
+
+        self.print_freq = 10
 
     def __getitem__(self, index):
         """
@@ -112,9 +133,10 @@ class TuplesDataset(data.Dataset):
         return output, target
 
     def __len__(self):
-        if not self.qidxs:
-            return 0
-        return len(self.qidxs)
+        # if not self.qidxs:
+        #     return 0
+        # return len(self.qidxs)
+        return self.qsize
 
     def __repr__(self):
         fmt_str = self.__class__.__name__ + '\n'
@@ -149,7 +171,7 @@ class TuplesDataset(data.Dataset):
         # useful when only positives used for training
         if self.nnum == 0:
             self.nidxs = [[] for _ in range(len(self.qidxs))]
-            return
+            return 0
 
         # draw poolsize random images for pool of negatives images
         idxs2images = torch.randperm(len(self.images))[:self.poolsize]
@@ -158,48 +180,63 @@ class TuplesDataset(data.Dataset):
         net.cuda()
         net.eval()
 
-        print('>> Extracting descriptors for query images...')
-        loader = torch.utils.data.DataLoader(
-            ImagesFromList(root='', images=[self.images[i] for i in self.qidxs], imsize=self.imsize, transform=self.transform),
-            batch_size=1, shuffle=False, num_workers=8, pin_memory=True
-        )
-        qvecs = torch.Tensor(net.meta['outputdim'], len(self.qidxs)).cuda()
-        for i, input in enumerate(loader):
-            print('\r>>>> {}/{} done...'.format(i+1, len(self.qidxs)), end='')
-            qvecs[:, i] = net(Variable(input.cuda())).data
-        print('')
+        # no gradients computed, to reduce memory and increase speed
+        with torch.no_grad():
 
-        print('>> Extracting descriptors for negative pool...')
-        loader = torch.utils.data.DataLoader(
-            ImagesFromList(root='', images=[self.images[i] for i in idxs2images], imsize=self.imsize, transform=self.transform),
-            batch_size=1, shuffle=False, num_workers=8, pin_memory=True
-        )
-        poolvecs = torch.Tensor(net.meta['outputdim'], len(idxs2images)).cuda()
-        for i, input in enumerate(loader):
-            print('\r>>>> {}/{} done...'.format(i+1, len(idxs2images)), end='')
-            poolvecs[:, i] = net(Variable(input.cuda())).data
-        print('')
+            print('>> Extracting descriptors for query images...')
+            # prepare query loader
+            loader = torch.utils.data.DataLoader(
+                ImagesFromList(root='', images=[self.images[i] for i in self.qidxs], imsize=self.imsize, transform=self.transform),
+                batch_size=1, shuffle=False, num_workers=8, pin_memory=True
+            )
+            # extract query vectors
+            qvecs = torch.zeros(net.meta['outputdim'], len(self.qidxs)).cuda()
+            for i, input in enumerate(loader):
+                qvecs[:, i] = net(input.cuda()).data.squeeze()
+                if (i+1) % self.print_freq == 0 or (i+1) == len(self.qidxs):
+                    print('\r>>>> {}/{} done...'.format(i+1, len(self.qidxs)), end='')
+            print('')
 
-        print('>> Searching for hard negatives...')
-        scores = torch.mm(poolvecs.t(), qvecs)
-        scores, ranks = torch.sort(scores, dim=0, descending=True)
-        self.nidxs = []
-        for q in range(len(self.qidxs)):
-            qcluster = self.clusters[self.qidxs[q]]
-            clusters = [qcluster]
-            nidxs = []
-            r = 0
-            avg_ndist = torch.Tensor([0]).cuda()
-            n_ndist = torch.Tensor([0]).cuda()
-            while len(nidxs) < self.nnum:
-                potential = idxs2images[ranks[r, q]]
-                # take at most one image from the same cluster
-                if not self.clusters[potential] in clusters:
-                    nidxs.append(potential)
-                    clusters.append(self.clusters[potential])
-                    avg_ndist += torch.pow(qvecs[:,q]-poolvecs[:,ranks[r, q]]+1e-6, 2).sum(dim=0).sqrt()
-                    n_ndist += 1
-                r += 1
-            self.nidxs.append(nidxs)
-        print('>>>> Average negative distance: {:.2f}'.format(list((avg_ndist/n_ndist).cpu())[0]))
-        print('>>>> Done')
+            print('>> Extracting descriptors for negative pool...')
+            # prepare negative pool data loader
+            loader = torch.utils.data.DataLoader(
+                ImagesFromList(root='', images=[self.images[i] for i in idxs2images], imsize=self.imsize, transform=self.transform),
+                batch_size=1, shuffle=False, num_workers=8, pin_memory=True
+            )
+            # extract negative pool vectors
+            poolvecs = torch.zeros(net.meta['outputdim'], len(idxs2images)).cuda()
+            for i, input in enumerate(loader):
+                poolvecs[:, i] = net(input.cuda()).data.squeeze()
+                if (i+1) % self.print_freq == 0 or (i+1) == len(idxs2images):
+                    print('\r>>>> {}/{} done...'.format(i+1, len(idxs2images)), end='')
+            print('')
+
+            print('>> Searching for hard negatives...')
+            # compute dot product scores and ranks on GPU
+            scores = torch.mm(poolvecs.t(), qvecs)
+            scores, ranks = torch.sort(scores, dim=0, descending=True)
+            avg_ndist = torch.tensor(0).float().cuda()  # for statistics
+            n_ndist = torch.tensor(0).float().cuda()  # for statistics
+            # selection of negative examples
+            self.nidxs = []
+            for q in range(len(self.qidxs)):
+                # do not use query cluster,
+                # those images are potentially positive
+                qcluster = self.clusters[self.qidxs[q]]
+                clusters = [qcluster]
+                nidxs = []
+                r = 0
+                while len(nidxs) < self.nnum:
+                    potential = idxs2images[ranks[r, q]]
+                    # take at most one image from the same cluster
+                    if not self.clusters[potential] in clusters:
+                        nidxs.append(potential)
+                        clusters.append(self.clusters[potential])
+                        avg_ndist += torch.pow(qvecs[:,q]-poolvecs[:,ranks[r, q]]+1e-6, 2).sum(dim=0).sqrt()
+                        n_ndist += 1
+                    r += 1
+                self.nidxs.append(nidxs)
+            print('>>>> Average negative l2-distance: {:.2f}'.format(avg_ndist/n_ndist))
+            print('>>>> Done')
+
+        return (avg_ndist/n_ndist).item()  # return average negative l2-distance
