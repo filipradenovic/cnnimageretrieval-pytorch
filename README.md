@@ -48,7 +48,7 @@ python3 -m cirtorch.examples.train [-h] [--training-dataset DATASET] [--no-val]
                 [--batch-size N] [--optimizer OPTIMIZER] [--lr LR]
                 [--momentum M] [--weight-decay W] [--print-freq N]
                 [--resume FILENAME]
-                DIR
+                EXPORT_DIR
 ```
 
 For detailed explanation of the options run:

@@ -40,7 +40,7 @@ optimizer_names = ['sgd', 'adam']
 parser = argparse.ArgumentParser(description='PyTorch CNN Image Retrieval Training')
 
 # export directory, training and val datasets, test datasets
-parser.add_argument('directory', metavar='DIR',
+parser.add_argument('directory', metavar='EXPORT_DIR',
                     help='destination where trained network should be saved')
 parser.add_argument('--training-dataset', '-d', metavar='DATASET', default='retrieval-SfM-120k', choices=training_dataset_names,
                     help='training dataset: ' + 
