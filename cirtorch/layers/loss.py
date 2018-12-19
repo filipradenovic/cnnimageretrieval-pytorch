@@ -8,40 +8,19 @@ import cirtorch.layers.functional as LF
 # --------------------------------------
 
 class ContrastiveLoss(nn.Module):
-    r"""Creates a criterion that measures the triplet loss given an input
-    tensors x1, x2, x3 and a margin with a value greater than 0.
-    This is used for measuring a relative similarity between samples. A triplet
-    is composed by `a`, `p` and `n`: anchor, positive examples and negative
-    example respectively. The shape of all input variables should be
-    :math:`(N, D)`.
-
-    The distance swap is described in detail in the paper `Learning shallow
-    convolutional feature descriptors with triplet losses`_ by
-    V. Balntas, E. Riba et al.
-
-    .. math::
-        L(a, p, n) = \frac{1}{N} \left( \sum_{i=1}^N \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\} \right)
-
-    where :math:`d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p`.
+    r"""CONTRASTIVELOSS layer that computes contrastive loss for a batch of images:
+        Q query tuples, each packed in the form of (q,p,n1,..nN)
 
     Args:
-        anchor: anchor input tensor
-        positive: positive input tensor
-        negative: negative input tensor
-        p: the norm degree. Default: 2
-
-    Shape:
-        - Input: :math:`(N, D)` where `D = vector dimension`
-        - Output: :math:`(N, 1)`
+        x: tuples arranges in columns as [q,p,n1,nN, ... ]
+        label: -1 for query, 1 for corresponding positive, 0 for corresponding negative
+        margin: contrastive loss margin. Default: 0.7
 
     >>> contrastive_loss = ContrastiveLoss(margin=0.7)
-    >>> input = autograd.Variable(torch.randn(128, 35))
-    >>> label = autograd.Variable(torch.Tensor([-1, 1, 0, 0, 0, 0, 0] * 5))
+    >>> input = torch.randn(128, 35, requires_grad=True)
+    >>> label = torch.Tensor([-1, 1, 0, 0, 0, 0, 0] * 5)
     >>> output = contrastive_loss(input, label)
     >>> output.backward()
-
-    .. _Learning shallow convolutional feature descriptors with triplet losses:
-        http://www.iis.ee.ic.ac.uk/%7Evbalnt/shallow_descr/TFeat_paper.pdf
     """
 
     def __init__(self, margin=0.7, eps=1e-6):
@@ -53,4 +32,4 @@ class ContrastiveLoss(nn.Module):
         return LF.contrastive_loss(x, label, margin=self.margin, eps=self.eps)
 
     def __repr__(self):
-        return self.__class__.__name__ + '(' + 'margin=' + str(self.margin) + ')'
+        return self.__class__.__name__ + '(' + 'margin=' + '{:.4f}'.format(self.margin) + ')'
