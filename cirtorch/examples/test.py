@@ -1,8 +1,8 @@
 import argparse
 import os
 import time
-import math
 import pickle
+import pdb
 
 import numpy as np
 
@@ -24,7 +24,7 @@ PRETRAINED = {
     'retrievalSfM120k-resnet101-gem'    : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/retrievalSfM120k-resnet101-gem-b80fb85.pth',
 }
 
-datasets_names = ['oxford5k,paris6k', 'roxford5k,rparis6k', 'oxford5k,paris6k,roxford5k,rparis6k']
+datasets_names = ['oxford5k', 'paris6k', 'roxford5k', 'rparis6k']
 whitening_names = ['retrieval-SfM-30k', 'retrieval-SfM-120k']
 
 parser = argparse.ArgumentParser(description='PyTorch CNN Image Retrieval Testing')
@@ -32,31 +32,37 @@ parser = argparse.ArgumentParser(description='PyTorch CNN Image Retrieval Testin
 # network
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--network-path', '-npath', metavar='NETWORK',
-                    help='network path, destination where network is saved')
+                    help="network path, destination where network is saved")
 group.add_argument('--network-offtheshelf', '-noff', metavar='NETWORK',
-                    help='network off-the-shelf, in the format ARCHITECTURE-POOLING or ARCHITECTURE-POOLING-whiten,' + 
-                    ' examples: resnet101-gem | resnet101-gem-whiten')
+                    help="network off-the-shelf, in the format 'ARCHITECTURE-POOLING' or 'ARCHITECTURE-POOLING-{reg-lwhiten-whiten}'," + 
+                        " examples: 'resnet101-gem' | 'resnet101-gem-reg' | 'resnet101-gem-whiten' | 'resnet101-gem-lwhiten' | 'resnet101-gem-reg-whiten'")
 
 # test options
 parser.add_argument('--datasets', '-d', metavar='DATASETS', default='oxford5k,paris6k',
-                   help='comma separated list of test datasets: ' + 
-                        ' | '.join(datasets_names) + 
-                        ' (default: oxford5k,paris6k)')
+                    help="comma separated list of test datasets: " + 
+                        " | ".join(datasets_names) + 
+                        " (default: 'oxford5k,paris6k')")
 parser.add_argument('--image-size', '-imsize', default=1024, type=int, metavar='N',
-                    help='maximum size of longer image side used for testing (default: 1024)')
-parser.add_argument('--multiscale', '-ms', dest='multiscale', action='store_true',
-                    help='use multiscale vectors for testing')
+                    help="maximum size of longer image side used for testing (default: 1024)")
+parser.add_argument('--multiscale', '-ms', metavar='MULTISCALE', default='[1]', 
+                    help="use multiscale vectors for testing, " + 
+                    " examples: '[1]' | '[1, 1/2**(1/2), 1/2]' | '[1, 2**(1/2), 1/2**(1/2)]' (default: '[1]')")
 parser.add_argument('--whitening', '-w', metavar='WHITENING', default=None, choices=whitening_names,
-                    help='dataset used to learn whitening for testing: ' + 
-                        ' | '.join(whitening_names) + 
-                        ' (default: None)')
+                    help="dataset used to learn whitening for testing: " + 
+                        " | ".join(whitening_names) + 
+                        " (default: None)")
 
 # GPU ID
 parser.add_argument('--gpu-id', '-g', default='0', metavar='N',
-                    help='gpu id used for testing (default: 0)')
+                    help="gpu id used for testing (default: '0')")
 
 def main():
     args = parser.parse_args()
+
+    # check if there are unknown datasets
+    for dataset in args.datasets.split(','):
+        if dataset not in datasets_names:
+            raise ValueError('Unsupported or unknown dataset: {}!'.format(dataset))
 
     # check if test dataset are downloaded
     # and download if they are not
@@ -68,14 +74,30 @@ def main():
 
     # loading network from path
     if args.network_path is not None:
+
         print(">> Loading network:\n>>>> '{}'".format(args.network_path))
         if args.network_path in PRETRAINED:
             # pretrained networks (downloaded automatically)
             state = load_url(PRETRAINED[args.network_path], model_dir=os.path.join(get_data_root(), 'networks'))
         else:
+            # fine-tuned network from path
             state = torch.load(args.network_path)
-        net = init_network(model=state['meta']['architecture'], pooling=state['meta']['pooling'], whitening=state['meta']['whitening'], 
-                            mean=state['meta']['mean'], std=state['meta']['std'], pretrained=False)
+
+        # parsing net params from meta
+        # architecture, pooling, mean, std required
+        # the rest has default values, in case that is doesnt exist
+        net_params = {}
+        net_params['architecture'] = state['meta']['architecture']
+        net_params['pooling'] = state['meta']['pooling']
+        net_params['local_whitening'] = state['meta'].get('local_whitening', False)
+        net_params['regional'] = state['meta'].get('regional', False)
+        net_params['whitening'] = state['meta'].get('whitening', False)
+        net_params['mean'] = state['meta']['mean']
+        net_params['std'] = state['meta']['std']
+        net_params['pretrained'] = False
+
+        # load network
+        net = init_network(net_params)
         net.load_state_dict(state['state_dict'])
         
         # if whitening is precomputed
@@ -87,30 +109,37 @@ def main():
 
     # loading offtheshelf network
     elif args.network_offtheshelf is not None:
+        
+        # parse off-the-shelf parameters
         offtheshelf = args.network_offtheshelf.split('-')
-        if len(offtheshelf)==3:
-            if offtheshelf[2]=='whiten':
-                offtheshelf_whiten = True
-            else:
-                raise(RuntimeError("Incorrect format of the off-the-shelf network. Examples: resnet101-gem | resnet101-gem-whiten"))
-        else:
-            offtheshelf_whiten = False
+        net_params = {}
+        net_params['architecture'] = offtheshelf[0]
+        net_params['pooling'] = offtheshelf[1]
+        net_params['local_whitening'] = 'lwhiten' in offtheshelf[2:]
+        net_params['regional'] = 'reg' in offtheshelf[2:]
+        net_params['whitening'] = 'whiten' in offtheshelf[2:]
+        net_params['pretrained'] = True
+
+        # load off-the-shelf network
         print(">> Loading off-the-shelf network:\n>>>> '{}'".format(args.network_offtheshelf))
-        net = init_network(model=offtheshelf[0], pooling=offtheshelf[1], whitening=offtheshelf_whiten)
+        net = init_network(net_params)
         print(">>>> loaded network: ")
         print(net.meta_repr())
 
     # setting up the multi-scale parameters
-    ms = [1]
-    msp = 1
-    if args.multiscale:
-        ms = [1, 1./math.sqrt(2), 1./2]
-        if net.meta['pooling'] == 'gem' and net.whiten is None:
-            msp = net.pool.p.data.tolist()[0]
+    ms = list(eval(args.multiscale))
+    if len(ms)>1 and net.meta['pooling'] == 'gem' and not net.meta['regional'] and not net.meta['whitening']:
+        msp = net.pool.p.item()
+        print(">> Set-up multiscale:")
+        print(">>>> ms: {}".format(ms))            
+        print(">>>> msp: {}".format(msp))
+    else:
+        msp = 1
 
     # moving network to gpu and eval mode
     net.cuda()
     net.eval()
+
     # set up the transform
     normalize = transforms.Normalize(
         mean=net.meta['mean'],
@@ -129,34 +158,55 @@ def main():
             
             print('>> {}: Whitening is precomputed, loading it...'.format(args.whitening))
             
-            if args.multiscale:
+            if len(ms)>1:
                 Lw = net.meta['Lw'][args.whitening]['ms']
             else:
                 Lw = net.meta['Lw'][args.whitening]['ss']
 
         else:
 
-            print('>> {}: Learning whitening...'.format(args.whitening))
+            # if we evaluate networks from path we should save/load whitening
+            # not to compute it every time
+            if args.network_path is not None:
+                whiten_fn = args.network_path + '_{}_whiten'.format(args.whitening)
+                if len(ms) > 1:
+                    whiten_fn += '_ms'
+                whiten_fn += '.pth'
+            else:
+                whiten_fn = None
 
-            # loading db
-            db_root = os.path.join(get_data_root(), 'train', args.whitening)
-            ims_root = os.path.join(db_root, 'ims')
-            db_fn = os.path.join(db_root, '{}-whiten.pkl'.format(args.whitening))
-            with open(db_fn, 'rb') as f:
-                db = pickle.load(f)
-            images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
+            if whiten_fn is not None and os.path.isfile(whiten_fn):
+                print('>> {}: Whitening is precomputed, loading it...'.format(args.whitening))
+                Lw = torch.load(whiten_fn)
 
-            # extract whitening vectors
-            print('>> {}: Extracting...'.format(args.whitening))
-            wvecs = extract_vectors(net, images, args.image_size, transform, ms=ms, msp=msp)
-            
-            # learning whitening 
-            print('>> {}: Learning...'.format(args.whitening))
-            wvecs = wvecs.numpy()
-            m, P = whitenlearn(wvecs, db['qidxs'], db['pidxs'])
-            Lw = {'m': m, 'P': P}
+            else:
+                print('>> {}: Learning whitening...'.format(args.whitening))
+                
+                # loading db
+                db_root = os.path.join(get_data_root(), 'train', args.whitening)
+                ims_root = os.path.join(db_root, 'ims')
+                db_fn = os.path.join(db_root, '{}-whiten.pkl'.format(args.whitening))
+                with open(db_fn, 'rb') as f:
+                    db = pickle.load(f)
+                images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
+
+                # extract whitening vectors
+                print('>> {}: Extracting...'.format(args.whitening))
+                wvecs = extract_vectors(net, images, args.image_size, transform, ms=ms, msp=msp)
+                
+                # learning whitening 
+                print('>> {}: Learning...'.format(args.whitening))
+                wvecs = wvecs.numpy()
+                m, P = whitenlearn(wvecs, db['qidxs'], db['pidxs'])
+                Lw = {'m': m, 'P': P}
+
+                # saving whitening if whiten_fn exists
+                if whiten_fn is not None:
+                    print('>> {}: Saving to {}...'.format(args.whitening, whiten_fn))
+                    torch.save(Lw, whiten_fn)
 
         print('>> {}: elapsed time: {}'.format(args.whitening, htime(time.time()-start)))
+
     else:
         Lw = None
 

@@ -4,6 +4,7 @@ import shutil
 import time
 import math
 import pickle
+import pdb
 
 import numpy as np
 
@@ -11,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.optim
 import torch.utils.data
+
 import torchvision.transforms as transforms
 import torchvision.models as models
 
@@ -25,13 +27,13 @@ from cirtorch.utils.evaluate import compute_map_and_print
 from cirtorch.utils.general import get_data_root, htime
 
 training_dataset_names = ['retrieval-SfM-120k']
-test_datasets_names = ['oxford5k,paris6k', 'roxford5k,rparis6k', 'oxford5k,paris6k,roxford5k,rparis6k']
+test_datasets_names = ['oxford5k', 'paris6k', 'roxford5k', 'rparis6k']
 test_whiten_names = ['retrieval-SfM-30k', 'retrieval-SfM-120k']
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
-pool_names = ['mac', 'spoc', 'gem', 'rmac']
+pool_names = ['mac', 'spoc', 'gem']
 loss_names = ['contrastive']
 optimizer_names = ['sgd', 'adam']
 
@@ -46,14 +48,16 @@ parser.add_argument('--training-dataset', '-d', metavar='DATASET', default='retr
                         ' (default: retrieval-SfM-120k)')
 parser.add_argument('--no-val', dest='val', action='store_false',
                     help='do not run validation')
-parser.add_argument('--test-datasets', '-td', metavar='DATASETS', default='oxford5k,paris6k', choices=test_datasets_names,
+parser.add_argument('--test-datasets', '-td', metavar='DATASETS', default='roxford5k,rparis6k',
                     help='comma separated list of test datasets: ' + 
                         ' | '.join(test_datasets_names) + 
-                        ' (default: oxford5k,paris6k)')
+                        ' (default: roxford5k,rparis6k)')
 parser.add_argument('--test-whiten', metavar='DATASET', default='', choices=test_whiten_names,
                     help='dataset used to learn whitening for testing: ' + 
                         ' | '.join(test_whiten_names) + 
                         ' (default: None)')
+parser.add_argument('--test-freq', default=1, type=int, metavar='N', 
+                    help='run test evaluation every N epochs (default: 1)')
 
 # network architecture and initialization options
 parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet101', choices=model_names,
@@ -64,10 +68,14 @@ parser.add_argument('--pool', '-p', metavar='POOL', default='gem', choices=pool_
                     help='pooling options: ' +
                         ' | '.join(pool_names) +
                         ' (default: gem)')
+parser.add_argument('--local-whitening', '-lw', dest='local_whitening', action='store_true',
+                    help='train model with learnable local whitening (linear layer) before the pooling')
+parser.add_argument('--regional', '-r', dest='regional', action='store_true',
+                    help='train model with regional pooling using fixed grid')
 parser.add_argument('--whitening', '-w', dest='whitening', action='store_true',
-                    help='train model with end-to-end whitening')
+                    help='train model with learnable whitening (linear layer) after the pooling')
 parser.add_argument('--not-pretrained', dest='pretrained', action='store_false',
-                    help='use model with random weights (default: pretrained on imagenet)')
+                    help='initialize model with random weights (default: pretrained on imagenet)')
 parser.add_argument('--loss', '-l', metavar='LOSS', default='contrastive',
                     choices=loss_names,
                     help='training loss options: ' +
@@ -117,6 +125,11 @@ def main():
     global args, min_loss
     args = parser.parse_args()
 
+    # manually check if there are unknown test datasets
+    for dataset in args.test_datasets.split(','):
+        if dataset not in test_datasets_names:
+            raise ValueError('Unsupported or unknown test dataset: {}!'.format(dataset))
+
     # check if test dataset are downloaded
     # and download if they are not
     download_train(get_data_root())
@@ -126,6 +139,10 @@ def main():
     directory = "{}".format(args.training_dataset)
     directory += "_{}".format(args.arch)
     directory += "_{}".format(args.pool)
+    if args.local_whitening:
+        directory += "_lwhiten"
+    if args.regional:
+        directory += "_r"
     if args.whitening:
         directory += "_whiten"
     if not args.pretrained:
@@ -143,18 +160,27 @@ def main():
     # set cuda visible device
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
     
-    # set random seeds (maybe pass as argument)
+    # set random seeds
+    # TODO: maybe pass as argument in future implementation?
     torch.manual_seed(0)
     torch.cuda.manual_seed_all(0)
     np.random.seed(0)
 
-    # create model
+    # initialize model
     if args.pretrained:
         print(">> Using pre-trained model '{}'".format(args.arch))
-        model = init_network(model=args.arch, pooling=args.pool, whitening=args.whitening)
     else:
         print(">> Using model from scratch (random weights) '{}'".format(args.arch))
-        model = init_network(model=args.arch, pooling=args.pool, whitening=args.whitening, pretrained=False)
+    model_params = {}
+    model_params['architecture'] = args.arch
+    model_params['pooling'] = args.pool
+    model_params['local_whitening'] = args.local_whitening
+    model_params['regional'] = args.regional
+    model_params['whitening'] = args.whitening
+    # model_params['mean'] = ...  # will use default
+    # model_params['std'] = ...  # will use default
+    model_params['pretrained'] = args.pretrained
+    model = init_network(model_params)
 
     # move network to gpu
     model.cuda()
@@ -165,11 +191,25 @@ def main():
     else:
         raise(RuntimeError("Loss {} not available!".format(args.loss)))
 
-    # parameters split into features and pool (no weight decay for pooling layer)
-    parameters = [
-        {'params': model.features.parameters()},
-        {'params': model.pool.parameters(), 'lr': args.lr*10, 'weight_decay': 0}
-    ]
+    # parameters split into features, pool, whitening 
+    # IMPORTANT: no weight decay for pooling parameter p in GeM or regional-GeM
+    parameters = []
+    # add feature parameters
+    parameters.append({'params': model.features.parameters()})
+    # add local whitening if exists
+    if model.lwhiten is not None:
+        parameters.append({'params': model.lwhiten.parameters()})
+    # add pooling parameters (or regional whitening which is part of the pooling layer!)
+    if not args.regional:
+        # global, only pooling parameter p weight decay should be 0
+        parameters.append({'params': model.pool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+    else:
+        # regional, pooling parameter p weight decay should be 0, 
+        # and we want to add regional whitening if it is there
+        parameters.append({'params': model.pool.rpool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+        if model.pool.whiten is not None:
+            parameters.append({'params': model.pool.whiten.parameters()})
+    # add final whitening if exists
     if model.whiten is not None:
         parameters.append({'params': model.whiten.parameters()})
 
@@ -180,6 +220,7 @@ def main():
         optimizer = torch.optim.Adam(parameters, args.lr, weight_decay=args.weight_decay)
 
     # define learning rate decay schedule
+    # TODO: maybe pass as argument in future implementation?
     exp_decay = math.exp(-0.01)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=exp_decay)
 
@@ -188,6 +229,7 @@ def main():
     if args.resume:
         args.resume = os.path.join(args.directory, args.resume)
         if os.path.isfile(args.resume):
+            # load checkpoint weights and update model and optimizer
             print(">> Loading checkpoint:\n>> '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             start_epoch = checkpoint['epoch']
@@ -196,6 +238,7 @@ def main():
             optimizer.load_state_dict(checkpoint['optimizer'])
             print(">>>> loaded checkpoint:\n>>>> '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
+            # important not to forget scheduler updating
             scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=exp_decay, last_epoch=checkpoint['epoch']-1)
         else:
             print(">> No checkpoint found at '{}'".format(args.resume))
@@ -237,7 +280,8 @@ def main():
         )
 
     # evaluate the network before starting
-    test(args.test_datasets, model)
+    # this might not be necessary?
+    # test(args.test_datasets, model)
 
     for epoch in range(start_epoch, args.epochs):
 
@@ -248,6 +292,7 @@ def main():
 
         # adjust learning rate for each epoch
         scheduler.step()
+        # # debug printing to check if everything ok
         # lr_feat = optimizer.param_groups[0]['lr']
         # lr_pool = optimizer.param_groups[1]['lr']
         # print('>> Features lr: {:.2e}; Pooling lr: {:.2e}'.format(lr_feat, lr_pool))
@@ -257,10 +302,13 @@ def main():
 
         # evaluate on validation set
         if args.val:
-            loss = validate(val_loader, model, criterion, epoch)
+            with torch.no_grad():
+                loss = validate(val_loader, model, criterion, epoch)
 
-        # evaluate on test datasets
-        test(args.test_datasets, model)
+        # evaluate on test datasets every test_freq epochs
+        if (epoch + 1) % args.test_freq == 0:
+            with torch.no_grad():
+                test(args.test_datasets, model)
 
         # remember best loss and save checkpoint
         is_best = loss < min_loss
@@ -280,7 +328,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     losses = AverageMeter()
 
     # create tuples for training
-    train_loader.dataset.create_epoch_tuples(model)
+    avg_neg_distance = train_loader.dataset.create_epoch_tuples(model)
 
     # switch to train mode
     model.train()
@@ -298,20 +346,19 @@ def train(train_loader, model, criterion, optimizer, epoch):
         ni = len(input[0]) # number of images per tuple
 
         for q in range(nq):
-            output = torch.autograd.Variable(torch.Tensor(model.meta['outputdim'], ni).cuda())
+            output = torch.zeros(model.meta['outputdim'], ni).cuda()
             for imi in range(ni):
-                # print(q, imi)
-                # target = target.cuda(async=True)
-                input_var = torch.autograd.Variable(input[q][imi].cuda())
 
-                # compute output
-                output[:, imi] = model(input_var)
+                # compute output vector for image imi
+                output[:, imi] = model(input[q][imi].cuda()).squeeze()
 
-            # compute loss for this batch and do backward pass for a batch
+            # reducing memory consumption:
+            # compute loss for this query tuple only
+            # then, do backward pass for one tuple only
             # each backward pass gradients will be accumulated
-            target_var = torch.autograd.Variable(target[q].cuda())
-            loss = criterion(output, target_var)
-            losses.update(loss.data[0])
+            # the optimization step is performed for the full batch later
+            loss = criterion(output, target[q].cuda())
+            losses.update(loss.item())
             loss.backward()
 
         # do one step for multiple batches
@@ -322,12 +369,12 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        if i % args.print_freq == 0:
+        if (i+1) % args.print_freq == 0 or i == 0 or (i+1) == len(train_loader):
             print('>> Train: [{0}][{1}/{2}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})'.format(
-                   epoch+1, i, len(train_loader), batch_time=batch_time,
+                   epoch+1, i+1, len(train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses))
 
     return losses.avg
@@ -338,7 +385,7 @@ def validate(val_loader, model, criterion, epoch):
     losses = AverageMeter()
 
     # create tuples for validation
-    val_loader.dataset.create_epoch_tuples(model)
+    avg_neg_distance = val_loader.dataset.create_epoch_tuples(model)
 
     # switch to evaluate mode
     model.eval()
@@ -348,31 +395,30 @@ def validate(val_loader, model, criterion, epoch):
 
         nq = len(input) # number of training tuples
         ni = len(input[0]) # number of images per tuple
-        output = torch.autograd.Variable(torch.Tensor(model.meta['outputdim'], nq*ni).cuda(), volatile=True)
+        output = torch.zeros(model.meta['outputdim'], nq*ni).cuda()
 
         for q in range(nq):
             for imi in range(ni):
-                # target = target.cuda(async=True)
-                input_var = torch.autograd.Variable(input[q][imi].cuda())
 
-                # compute output
-                output[:, q*ni + imi] = model(input_var)
+                # compute output vector for image imi of query q
+                output[:, q*ni + imi] = model(input[q][imi].cuda()).squeeze()
 
-        target_var = torch.autograd.Variable(torch.cat(target).cuda())
-        loss = criterion(output, target_var)
+        # no need to reduce memory consumption (no backward pass):
+        # compute loss for the full batch
+        loss = criterion(output, torch.cat(target).cuda())
 
         # record loss
-        losses.update(loss.data[0]/nq, nq)
+        losses.update(loss.item()/nq, nq)
 
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
 
-        if i % args.print_freq == 0:
+        if (i+1) % args.print_freq == 0 or i == 0 or (i+1) == len(val_loader):
             print('>> Val: [{0}][{1}/{2}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})'.format(
-                   epoch+1, i, len(val_loader), batch_time=batch_time, loss=losses))
+                   epoch+1, i+1, len(val_loader), batch_time=batch_time, loss=losses))
 
     return losses.avg
 
@@ -412,7 +458,7 @@ def test(datasets, net):
 
         # extract whitening vectors
         print('>> {}: Extracting...'.format(args.test_whiten))
-        wvecs = extract_vectors(net, images, image_size, transform)
+        wvecs = extract_vectors(net, images, image_size, transform)  # implemented with torch.no_grad
         
         # learning whitening 
         print('>> {}: Learning...'.format(args.test_whiten))
@@ -439,9 +485,9 @@ def test(datasets, net):
         
         # extract database and query vectors
         print('>> {}: database images...'.format(dataset))
-        vecs = extract_vectors(net, images, image_size, transform)
+        vecs = extract_vectors(net, images, image_size, transform)  # implemented with torch.no_grad
         print('>> {}: query images...'.format(dataset))
-        qvecs = extract_vectors(net, qimages, image_size, transform, bbxs)
+        qvecs = extract_vectors(net, qimages, image_size, transform, bbxs)  # implemented with torch.no_grad
         
         print('>> {}: Evaluating...'.format(dataset))
 
@@ -496,9 +542,15 @@ class AverageMeter(object):
 def set_batchnorm_eval(m):
     classname = m.__class__.__name__
     if classname.find('BatchNorm') != -1:
-        # freeze running mean and std
+        # freeze running mean and std:
+        # we do training one image at a time
+        # so the statistics would not be per batch
+        # hence we choose freezing (ie using imagenet statistics)
         m.eval()
-        # freeze parameters
+        # # freeze parameters:
+        # # in fact no need to freeze scale and bias
+        # # they can be learned
+        # # that is why next two lines are commented
         # for p in m.parameters():
             # p.requires_grad = False
 
