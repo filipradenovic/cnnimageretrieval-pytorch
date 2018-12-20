@@ -175,3 +175,19 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
  year = {2018}
 }
 ```
+
+## Versions
+
+### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
+
+- Migrated code to PyTorch 1.0.0, removed Variable, added torch.no_grad for more speed and less memory at evaluation
+- Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
+- Added PowerLaw normalization layer
+- Added multi-scale testing with any given set of scales, in example test script
+- Fixed whitening learning for edge cases when covariance matrix is not positive definite
+- Fixed minor bugs
+
+### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
+
+- First public version
+- Compatible with PyTorch 0.3.0
