@@ -107,7 +107,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-path 'retrievalSfM120k-
                 --whitening 'retrieval-SfM-120k'
                 --multiscale '[1, 1/2**(1/2), 1/2]'
 ```
-Performance comparison with the networks used in the paper, trained with our [CNN Image Retrieval in MatConvNet](https://github.com/filipradenovic/cnnimageretrieval):
+The table below shows the performance comparison of networks trained with this framework and the networks used in the paper which were trained with our [CNN Image Retrieval in MatConvNet](https://github.com/filipradenovic/cnnimageretrieval):
 
 | Model | Oxford | Paris | ROxf (M) | RPar (M) | ROxf (H) | RPar (H) |
 |:------|:------:|:------:|:------:|:------:|:------:|:------:|
@@ -184,7 +184,7 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 - Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
 - Added PowerLaw normalization layer
 - Added multi-scale testing with any given set of scales, in example test script
-- Fixed whitening learning for edge cases when covariance matrix is not positive definite
+- Fix related to precision errors of covariance matrix estimation during whitening learning
 - Fixed minor bugs
 
 ### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
