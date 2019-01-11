@@ -102,7 +102,7 @@ def compute_map(ranks, gnd, kappas=[]):
         pos += 1 # get it to 1-based
         for j in np.arange(len(kappas)):
             kq = min(max(pos), kappas[j]); 
-            prs[i, j] = (pos <= kq).sum() / kq
+            prs[i, j] = (pos <= kq).astype(float).sum() / kq
         pr = pr + prs[i, :]
 
     map = map / (nq - nempty)
