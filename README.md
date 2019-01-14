@@ -60,7 +60,7 @@ For example, to train our best network described in the TPAMI 2018 paper run the
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
             --test-datasets 'roxford5k,rparis6k' --arch 'resnet101' --pool 'gem' --loss 'contrastive' 
-            --loss-margin 0.85 --optimizer 'adam' --lr 1e-6 --neg-num 5 --query-size=2000 
+            --loss-margin 0.85 --optimizer 'adam' --lr 5e-7 --neg-num 5 --query-size=2000 
             --pool-size=22000 --batch-size 5 --image-size 362
 ```
 
@@ -70,11 +70,13 @@ Networks can be evaluated with learned whitening after each epoch. To achieve th
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
             --test-datasets 'roxford5k,rparis6k' --test-whiten 'retrieval-SfM-30k' 
             --arch 'resnet101' --pool 'gem' --loss 'contrastive' --loss-margin 0.85 
-            --optimizer 'adam' --lr 1e-6 --neg-num 5 --query-size=2000 --pool-size=22000 
+            --optimizer 'adam' --lr 5e-7 --neg-num 5 --query-size=2000 --pool-size=22000 
             --batch-size 5 --image-size 362
 ```
 
 **Note**: Data and networks used for training and testing are automatically downloaded when using the example script.
+
+**Note**: Adjusted (lower) learning rate is set to achieve similar performance as with [MatConvNet](https://github.com/filipradenovic/cnnimageretrieval) and [PyTorch-0.3.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) implementation of the training.
 
 ### Testing
 
