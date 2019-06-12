@@ -182,6 +182,8 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
 
+### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
+
 - Migrated code to PyTorch 1.0.0, removed Variable, added torch.no_grad for more speed and less memory at evaluation
 - Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
 - Added PowerLaw normalization layer
