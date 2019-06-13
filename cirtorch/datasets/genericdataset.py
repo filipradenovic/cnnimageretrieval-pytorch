@@ -1,4 +1,5 @@
 import os
+import pdb
 
 import torch
 import torch.utils.data as data
@@ -48,12 +49,16 @@ class ImagesFromList(data.Dataset):
         """
         path = self.images_fn[index]
         img = self.loader(path)
+        imfullsize = max(img.size)
 
-        if self.bbxs:
+        if self.bbxs is not None:
             img = img.crop(self.bbxs[index])
 
         if self.imsize is not None:
-            img = imresize(img, self.imsize)
+            if self.bbxs is not None:
+                img = imresize(img, self.imsize * max(img.size) / imfullsize)
+            else:
+                img = imresize(img, self.imsize)
 
         if self.transform is not None:
             img = self.transform(img)
