@@ -33,3 +33,16 @@ class ContrastiveLoss(nn.Module):
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + 'margin=' + '{:.4f}'.format(self.margin) + ')'
+
+
+class TripletLoss(nn.Module):
+
+    def __init__(self, margin=0.1):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, x, label):
+        return LF.triplet_loss(x, label, margin=self.margin)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + 'margin=' + '{:.4f}'.format(self.margin) + ')'
