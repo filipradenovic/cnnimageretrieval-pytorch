@@ -147,6 +147,43 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 **Note**: Data used for testing are automatically downloaded when using the example script.
 
+## Networks with whitening learned end-to-end
+
+Our code can be used to fine-tune networks with whitening added as an FC layer after the pooling.
+Whitening FC layer is initialized in a supervised manner using our training data and off-the-shelf features.
+When whitening is added in the fine-tuning procedure, we notice that the performance is highest if the images are with a similar high-resolution at train and test time. 
+Also, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss.
+In this scenario, triplet loss performs better. 
+To train such a setup you should run the following command (the performance will be evaluated every 5 epochs on `roxford5k` and `rparis6k`):
+```
+python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
+            --loss 'triplet' --loss-margin 0.5 --optimizer 'adam' --lr 5e-7 
+            --arch 'resnet101' --pool 'gem' --whitening 
+            --neg-num 4 --query-size=2000 --pool-size=20000 
+            --batch-size 5 --image-size 1024 --epochs 50 
+            --test-datasets 'roxford5k,rparis6k' --test-freq 5 
+```
+
+We also provide our end-to-end pre-trained networks, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
+For example, to evaluate ResNet101 with GeM and whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, you should run the following script:
+```
+python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
+            --datasets 'roxford5k,rparis6k' --multiscale '[1, 2**(1/2), 1/2**(1/2)]'
+```
+
+All available pre-trained networks and their multi-scale performance is given in the following table:
+
+| Model | ROxf (M) | RPar (M) | ROxf (H) | RPar (H) |
+|:------|:------:|:------:|:------:|:------:|
+| rSfM120k-tl-resnet50-gem-w  | TBD | TBD | TBD | TBD |
+| rSfM120k-tl-resnet101-gem-w | TBD | TBD | TBD | TBD |
+| rSfM120k-tl-resnet152-gem-w | TBD | TBD | TBD | TBD |
+| gl18-tl-resnet50-gem-w  | 63.6 | 78.0 | 40.9 | 57.5 |
+| gl18-tl-resnet101-gem-w | 67.3 | 80.6 | 44.3 | 61.5 |
+| gl18-tl-resnet152-gem-w | 68.7 | 79.7 | 44.2 | 60.3 |
+
+**Note**: Data, networks, and whitening initialization used for training and testing are automatically downloaded when using the example scripts.
+
 
 ## Related publications
 
