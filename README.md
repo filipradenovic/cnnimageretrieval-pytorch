@@ -165,22 +165,23 @@ python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-datas
 ```
 
 We also provide our end-to-end pre-trained networks, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
+Whitening is learned during the end-to-end training, so there is no need to compute it as a post-processing step.
 For example, to evaluate ResNet101 with GeM and whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, you should run the following script:
 ```
 python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
             --datasets 'roxford5k,rparis6k' --multiscale '[1, 2**(1/2), 1/2**(1/2)]'
 ```
 
-All available pre-trained networks and their multi-scale performance is given in the following table:
+Multi-scale performance of all available pre-trained networks is given in the following table:
 
 | Model | ROxf (M) | RPar (M) | ROxf (H) | RPar (H) |
 |:------|:------:|:------:|:------:|:------:|
 | rSfM120k-tl-resnet50-gem-w  | TBD | TBD | TBD | TBD |
 | rSfM120k-tl-resnet101-gem-w | TBD | TBD | TBD | TBD |
 | rSfM120k-tl-resnet152-gem-w | TBD | TBD | TBD | TBD |
-| gl18-tl-resnet50-gem-w  | 63.6 | 78.0 | 40.9 | 57.5 |
-| gl18-tl-resnet101-gem-w | 67.3 | 80.6 | 44.3 | 61.5 |
-| gl18-tl-resnet152-gem-w | 68.7 | 79.7 | 44.2 | 60.3 |
+| [gl18-tl-resnet50-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet50-gem-w-83fdc30.pth)  | 63.6 | 78.0 | 40.9 | 57.5 |
+| [gl18-tl-resnet101-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet101-gem-w-a4d43db.pth) | 67.3 | 80.6 | 44.3 | 61.5 |
+| [gl18-tl-resnet152-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet152-gem-w-21278d5.pth) | 68.7 | 79.7 | 44.2 | 60.3 |
 
 **Note**: Data, networks, and whitening initialization used for training and testing are automatically downloaded when using the example scripts.
 
