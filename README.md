@@ -182,7 +182,9 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
 
-- Added script to enable download on Windows 10 as explained in Issue [#39](https://github.com/filipradenovic/cnnimageretrieval-pytorch/issues/39)
+- Added triplet loss 
+- Added GeM pooling with multiple parameters (one p per channel/dimensionality)
+- Added script to enable download on Windows 10 as explained in Issue [#39](https://github.com/filipradenovic/cnnimageretrieval-pytorch/issues/39), courtesy of [SongZRui](https://github.com/SongZRui)
 
 ### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
 
