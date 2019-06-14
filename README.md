@@ -56,7 +56,8 @@ For detailed explanation of the options run:
 python3 -m cirtorch.examples.train -h
 ```
 
-For example, to train our best network described in the TPAMI 2018 paper run the following command. After each epoch, the fine-tuned network will be tested on the revisited Oxford and Paris benchmarks:
+For example, to train our best network described in the TPAMI 2018 paper run the following command. 
+After each epoch, the fine-tuned network will be tested on the revisited Oxford and Paris benchmarks:
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
             --test-datasets 'roxford5k,rparis6k' --arch 'resnet101' --pool 'gem' --loss 'contrastive' 
@@ -64,7 +65,8 @@ python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-datas
             --pool-size=22000 --batch-size 5 --image-size 362
 ```
 
-Networks can be evaluated with learned whitening after each epoch. To achieve this run the following command. Note that this will significantly slow down the entire training procedure, and you can evaluate networks with learned whitening later on using the example test script.
+Networks can be evaluated with learned whitening after each epoch. To achieve this run the following command. 
+Note that this will significantly slow down the entire training procedure, and you can evaluate networks with learned whitening later on using the example test script.
 
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
@@ -95,7 +97,8 @@ python3 -m cirtorch.examples.test -h
 
 #### Our pretrained networks
 
-We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. To evaluate them run:
+We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. 
+To evaluate them run:
 ```
 python3 -m cirtorch.examples.test --gpu-id '0' --network-path 'retrievalSfM120k-resnet101-gem' 
                 --datasets 'oxford5k,paris6k,roxford5k,rparis6k' 
@@ -220,6 +223,7 @@ Multi-scale performance of all available pre-trained networks is given in the fo
 
 ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
 
+- Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` **\[TO BE DONE\]** and `Google Landmarks 2018` train datasets
 - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
 - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
 - Added more pre-computed whitening options in imageretrievalnet
