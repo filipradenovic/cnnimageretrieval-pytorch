@@ -8,7 +8,6 @@ import numpy as np
 
 import torch
 from torch.utils.model_zoo import load_url
-from torch.autograd import Variable
 from torchvision import transforms
 
 from cirtorch.networks.imageretrievalnet import init_network, extract_vectors
@@ -221,7 +220,10 @@ def main():
         cfg = configdataset(dataset, os.path.join(get_data_root(), 'test'))
         images = [cfg['im_fname'](cfg,i) for i in range(cfg['n'])]
         qimages = [cfg['qim_fname'](cfg,i) for i in range(cfg['nq'])]
-        bbxs = [tuple(cfg['gnd'][i]['bbx']) for i in range(cfg['nq'])]
+        try:
+            bbxs = [tuple(cfg['gnd'][i]['bbx']) for i in range(cfg['nq'])]
+        except:
+            bbxs = None  # for holidaysmanrot and copydays
         
         # extract database and query vectors
         print('>> {}: database images...'.format(dataset))

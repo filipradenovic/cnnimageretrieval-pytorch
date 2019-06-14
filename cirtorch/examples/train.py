@@ -17,7 +17,7 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 
 from cirtorch.networks.imageretrievalnet import init_network, extract_vectors
-from cirtorch.layers.loss import ContrastiveLoss
+from cirtorch.layers.loss import ContrastiveLoss, TripletLoss
 from cirtorch.datasets.datahelpers import collate_tuples, cid2filename
 from cirtorch.datasets.traindataset import TuplesDataset
 from cirtorch.datasets.testdataset import configdataset
@@ -33,8 +33,8 @@ test_whiten_names = ['retrieval-SfM-30k', 'retrieval-SfM-120k']
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
-pool_names = ['mac', 'spoc', 'gem']
-loss_names = ['contrastive']
+pool_names = ['mac', 'spoc', 'gem', 'gemmp']
+loss_names = ['contrastive', 'triplet']
 optimizer_names = ['sgd', 'adam']
 
 parser = argparse.ArgumentParser(description='PyTorch CNN Image Retrieval Training')
@@ -103,6 +103,9 @@ parser.add_argument('--epochs', default=100, type=int, metavar='N',
                     help='number of total epochs to run (default: 100)')
 parser.add_argument('--batch-size', '-b', default=5, type=int, metavar='N', 
                     help='number of (q,p,n1,...,nN) tuples in a mini-batch (default: 5)')
+parser.add_argument('--update-every', '-u', default=1, type=int, metavar='N',
+                    help='update model weights every N batches, used to handle really large batches, ' + 
+                        'batch_size effectively becomes update_every x batch_size (default: 1)')
 parser.add_argument('--optimizer', '-o', metavar='OPTIMIZER', default='adam',
                     choices=optimizer_names,
                     help='optimizer options: ' +
@@ -112,8 +115,8 @@ parser.add_argument('--lr', '--learning-rate', default=1e-6, type=float,
                     metavar='LR', help='initial learning rate (default: 1e-6)')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
-                    metavar='W', help='weight decay (default: 1e-4)')
+parser.add_argument('--weight-decay', '--wd', default=1e-6, type=float,
+                    metavar='W', help='weight decay (default: 1e-6)')
 parser.add_argument('--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='FILENAME',
@@ -150,7 +153,7 @@ def main():
     directory += "_{}_m{:.2f}".format(args.loss, args.loss_margin)
     directory += "_{}_lr{:.1e}_wd{:.1e}".format(args.optimizer, args.lr, args.weight_decay)
     directory += "_nnum{}_qsize{}_psize{}".format(args.neg_num, args.query_size, args.pool_size)
-    directory += "_bsize{}_imsize{}".format(args.batch_size, args.image_size)
+    directory += "_bsize{}_uevery{}_imsize{}".format(args.batch_size, args.update_every, args.image_size)
 
     args.directory = os.path.join(args.directory, directory)
     print(">> Creating directory if it does not exist:\n>> '{}'".format(args.directory))
@@ -188,6 +191,8 @@ def main():
     # define loss function (criterion) and optimizer
     if args.loss == 'contrastive':
         criterion = ContrastiveLoss(margin=args.loss_margin).cuda()
+    elif args.loss == 'triplet':
+        criterion = TripletLoss(margin=args.loss_margin).cuda()
     else:
         raise(RuntimeError("Loss {} not available!".format(args.loss)))
 
@@ -202,11 +207,17 @@ def main():
     # add pooling parameters (or regional whitening which is part of the pooling layer!)
     if not args.regional:
         # global, only pooling parameter p weight decay should be 0
-        parameters.append({'params': model.pool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+        if args.pool == 'gem':
+            parameters.append({'params': model.pool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+        elif args.pool == 'gemmp':
+            parameters.append({'params': model.pool.parameters(), 'lr': args.lr*100, 'weight_decay': 0})
     else:
         # regional, pooling parameter p weight decay should be 0, 
         # and we want to add regional whitening if it is there
-        parameters.append({'params': model.pool.rpool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+        if args.pool == 'gem':
+            parameters.append({'params': model.pool.rpool.parameters(), 'lr': args.lr*10, 'weight_decay': 0})
+        elif args.pool == 'gemmp':
+            parameters.append({'params': model.pool.rpool.parameters(), 'lr': args.lr*100, 'weight_decay': 0})
         if model.pool.whiten is not None:
             parameters.append({'params': model.pool.whiten.parameters()})
     # add final whitening if exists
@@ -281,7 +292,7 @@ def main():
 
     # evaluate the network before starting
     # this might not be necessary?
-    # test(args.test_datasets, model)
+    test(args.test_datasets, model)
 
     for epoch in range(start_epoch, args.epochs):
 
@@ -334,13 +345,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
     model.train()
     model.apply(set_batchnorm_eval)
 
+    # zero out gradients
+    optimizer.zero_grad()
+
     end = time.time()
     for i, (input, target) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        # zero out gradients so we can accumulate new ones over batches
-        optimizer.zero_grad()
 
         nq = len(input) # number of training tuples
         ni = len(input[0]) # number of images per tuple
@@ -361,9 +373,16 @@ def train(train_loader, model, criterion, optimizer, epoch):
             losses.update(loss.item())
             loss.backward()
 
-        # do one step for multiple batches
-        # accumulated gradients are used
-        optimizer.step()
+        if (i + 1) % args.update_every == 0:
+            # do one step for multiple batches
+            # accumulated gradients are used
+            optimizer.step()
+            # zero out gradients so we can 
+            # accumulate new ones over batches
+            optimizer.zero_grad()
+            # print('>> Train: [{0}][{1}/{2}]\t'
+            #       'Weight update performed'.format(
+            #        epoch+1, i+1, len(train_loader)))
 
         # measure elapsed time
         batch_time.update(time.time() - end)

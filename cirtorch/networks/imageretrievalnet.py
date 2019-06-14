@@ -7,7 +7,7 @@ import torch.utils.model_zoo as model_zoo
 
 import torchvision
 
-from cirtorch.layers.pooling import MAC, SPoC, GeM, RMAC, Rpool
+from cirtorch.layers.pooling import MAC, SPoC, GeM, GeMmp, RMAC, Rpool
 from cirtorch.layers.normalization import L2N, PowerLaw
 from cirtorch.datasets.genericdataset import ImagesFromList
 from cirtorch.utils.general import get_data_root
@@ -29,10 +29,11 @@ L_WHITENING = {
 
 # possible global pooling layers, each on of these can be made regional
 POOLING = {
-    'mac'  : MAC,
-    'spoc' : SPoC,
-    'gem'  : GeM,
-    'rmac' : RMAC,
+    'mac'   : MAC,
+    'spoc'  : SPoC,
+    'gem'   : GeM,
+    'gemmp' : GeMmp,
+    'rmac'  : RMAC,
 }
 
 # TODO: pre-compute for: resnet50-gem-r, resnet50-mac-r, vgg16-mac-r, alexnet-mac-r
@@ -47,33 +48,39 @@ R_WHITENING = {
 # TODO: pre-compute for more architectures
 # pre-computed final (global) whitening, for most commonly used architectures and pooling methods
 WHITENING = {
-    'alexnet-gem'       : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-alexnet-gem-whiten-454ad53.pth',
-    'alexnet-gem-r'     : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-alexnet-gem-r-whiten-4c9126b.pth',
-    'vgg16-gem'         : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-vgg16-gem-whiten-eaa6695.pth',
-    'vgg16-gem-r'       : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-vgg16-gem-r-whiten-83582df.pth',
-    'resnet101-mac-r'   : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-mac-r-whiten-9df41d3.pth',
-    'resnet101-gem'     : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-gem-whiten-22ab0c1.pth',
-    'resnet101-gem-r'   : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-gem-r-whiten-b379c0a.pth',
+    'alexnet-gem'            : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-alexnet-gem-whiten-454ad53.pth',
+    'alexnet-gem-r'          : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-alexnet-gem-r-whiten-4c9126b.pth',
+    'vgg16-gem'              : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-vgg16-gem-whiten-eaa6695.pth',
+    'vgg16-gem-r'            : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-vgg16-gem-r-whiten-83582df.pth',
+    'resnet50-gem'           : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet50-gem-whiten-f15da7b.pth',
+    'resnet101-mac-r'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-mac-r-whiten-9df41d3.pth',
+    'resnet101-gem'          : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-gem-whiten-22ab0c1.pth',
+    'resnet101-gem-r'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-gem-r-whiten-b379c0a.pth',
+    'resnet101-gemmp'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet101-gemmp-whiten-770f53c.pth',
+    'resnet152-gem'          : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-resnet152-gem-whiten-abe7b93.pth',
+    'densenet121-gem'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-densenet121-gem-whiten-79e3eea.pth',
+    'densenet169-gem'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-densenet169-gem-whiten-6b2a76a.pth',
+    'densenet201-gem'        : 'http://cmp.felk.cvut.cz/cnnimageretrieval/data/whiten/retrieval-SfM-120k/retrieval-SfM-120k-densenet201-gem-whiten-22ea45c.pth',
 }
 
 # output dimensionality for supported architectures
 OUTPUT_DIM = {
-    'alexnet'       :  256,
-    'vgg11'         :  512,
-    'vgg13'         :  512,
-    'vgg16'         :  512,
-    'vgg19'         :  512,
-    'resnet18'      :  512,
-    'resnet34'      :  512,
-    'resnet50'      : 2048,
-    'resnet101'     : 2048,
-    'resnet152'     : 2048,
-    'densenet121'   : 1024,
-    'densenet161'   : 2208,
-    'densenet169'   : 1664,
-    'densenet201'   : 1920,
-    'squeezenet1_0' :  512,
-    'squeezenet1_1' :  512,
+    'alexnet'               :  256,
+    'vgg11'                 :  512,
+    'vgg13'                 :  512,
+    'vgg16'                 :  512,
+    'vgg19'                 :  512,
+    'resnet18'              :  512,
+    'resnet34'              :  512,
+    'resnet50'              : 2048,
+    'resnet101'             : 2048,
+    'resnet152'             : 2048,
+    'densenet121'           : 1024,
+    'densenet169'           : 1664,
+    'densenet201'           : 1920,
+    'densenet161'           : 2208, # largest densenet
+    'squeezenet1_0'         :  512,
+    'squeezenet1_1'         :  512,
 }
 
 
@@ -196,7 +203,10 @@ def init_network(params):
         lwhiten = None
     
     # initialize pooling
-    pool = POOLING[pooling]()
+    if pooling == 'gemmp':
+        pool = POOLING[pooling](mp=dim)
+    else:
+        pool = POOLING[pooling]()
     
     # initialize regional pooling
     if regional:
@@ -282,7 +292,7 @@ def extract_vectors(net, images, image_size, transform, bbxs=None, ms=[1], msp=1
         for i, input in enumerate(loader):
             input = input.cuda()
 
-            if len(ms) == 1:
+            if len(ms) == 1 and ms[0] == 1:
                 vecs[:, i] = extract_ss(net, input)
             else:
                 vecs[:, i] = extract_ms(net, input, ms, msp)
