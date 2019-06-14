@@ -30,7 +30,7 @@ In order to run this toolbox you will need:
 1. PyTorch deep learning framework (tested with version 1.0.0)
 1. All the rest (data + networks) is automatically downloaded with our scripts
 
-## Usage
+## Usage and papers implementation
 
 Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 
@@ -182,6 +182,9 @@ python3 -m cirtorch.examples.test --gpu-id '0' --network-offtheshelf 'resnet101-
 
 ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
 
+- Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training.
+- Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches.
+- Added more pre-computed whitening options in imageretrievalnet.
 - Added triplet loss 
 - Added GeM pooling with multiple parameters (one p per channel/dimensionality)
 - Added script to enable download on Windows 10 as explained in Issue [#39](https://github.com/filipradenovic/cnnimageretrieval-pytorch/issues/39), courtesy of [SongZRui](https://github.com/SongZRui)
