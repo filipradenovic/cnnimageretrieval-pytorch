@@ -179,9 +179,9 @@ Multi-scale performance of all available pre-trained networks is given in the fo
 
 | Model | ROxf (M) | RPar (M) | ROxf (H) | RPar (H) |
 |:------|:------:|:------:|:------:|:------:|
-| rSfM120k-tl-resnet50-gem-w  | TBD | TBD | TBD | TBD |
-| rSfM120k-tl-resnet101-gem-w | TBD | TBD | TBD | TBD |
-| rSfM120k-tl-resnet152-gem-w | TBD | TBD | TBD | TBD |
+| [rSfM120k-tl-resnet50-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/rSfM120k-tl-resnet50-gem-w-97bf910.pth)  | 64.7 | 76.3 | 39.0 | 54.9 |
+| [rSfM120k-tl-resnet101-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/rSfM120k-tl-resnet101-gem-w-a155e54.pth) | 67.8 | 77.6 | 41.7 | 56.3 |
+| [rSfM120k-tl-resnet152-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/retrieval-SfM-120k/rSfM120k-tl-resnet152-gem-w-f39cada.pth) | 68.8 | 78.0 | 41.3 | 57.2 |
 | [gl18-tl-resnet50-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet50-gem-w-83fdc30.pth)  | 63.6 | 78.0 | 40.9 | 57.5 |
 | [gl18-tl-resnet101-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet101-gem-w-a4d43db.pth) | 67.3 | 80.6 | 44.3 | 61.5 |
 | [gl18-tl-resnet152-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet152-gem-w-21278d5.pth) | 68.7 | 79.7 | 44.2 | 60.3 |
@@ -223,7 +223,7 @@ Multi-scale performance of all available pre-trained networks is given in the fo
 
 ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
 
-- Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` **\[TO BE DONE\]** and `Google Landmarks 2018` train datasets
+- Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
 - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
 - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
 - Added more pre-computed whitening options in imageretrievalnet
