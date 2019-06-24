@@ -156,16 +156,35 @@ Our code can be used to fine-tune networks with whitening added as an FC layer a
 Whitening FC layer is initialized in a supervised manner using our training data and off-the-shelf features.
 When whitening is added in the fine-tuning procedure, we notice that the performance is highest if the images are with a similar high-resolution at train and test time. 
 Also, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss.
-In this scenario, triplet loss performs better. 
-To train such a setup you should run the following command (the performance will be evaluated every 5 epochs on `roxford5k` and `rparis6k`):
+In this scenario, triplet loss performs slightly better. 
+To train such a setup you should run the following commands (the performance will be evaluated every 5 epochs on `roxford5k` and `rparis6k`):
+```
+python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
+            --loss 'triplet' --loss-margin 0.5 --optimizer 'adam' --lr 1e-6 
+            --arch 'resnet50' --pool 'gem' --whitening 
+            --neg-num 5 --query-size=2000 --pool-size=20000 
+            --batch-size 5 --image-size 1024 --epochs 100 
+            --test-datasets 'roxford5k,rparis6k' --test-freq 5 
+```
+or
 ```
 python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
             --loss 'triplet' --loss-margin 0.5 --optimizer 'adam' --lr 5e-7 
             --arch 'resnet101' --pool 'gem' --whitening 
             --neg-num 4 --query-size=2000 --pool-size=20000 
-            --batch-size 5 --image-size 1024 --epochs 50 
+            --batch-size 5 --image-size 1024 --epochs 100 
             --test-datasets 'roxford5k,rparis6k' --test-freq 5 
 ```
+or
+```
+python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
+            --loss 'triplet' --loss-margin 0.5 --optimizer 'adam' --lr 5e-7 
+            --arch 'resnet152' --pool 'gem' --whitening 
+            --neg-num 3 --query-size=2000 --pool-size=20000 
+            --batch-size 5 --image-size 900 --epochs 100 
+            --test-datasets 'roxford5k,rparis6k' --test-freq 5 
+```
+for `ResNet50`, `ResNet101`, or `ResNet152`, respectively. Note that, `--neg-num` and `--image-size` hyper-parameters are chosen such that the training can be performed on a single GPU with `16 GB` of memory. Additional tunning of hyper-parameters can be performed to achieve higher performance or faster training.
 
 We also provide our end-to-end pre-trained networks, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
 Whitening is learned during the end-to-end training, so there is no need to compute it as a post-processing step.
