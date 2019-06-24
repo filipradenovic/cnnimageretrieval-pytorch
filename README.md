@@ -187,7 +187,7 @@ python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-datas
 for `ResNet50`, `ResNet101`, or `ResNet152`, respectively. Note that, `--neg-num` and `--image-size` hyper-parameters are chosen such that the training can be performed on a single GPU with `16 GB` of memory. Additional tunning of hyper-parameters can be performed to achieve higher performance or faster training.
 
 We also provide our end-to-end pre-trained networks, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
-Whitening is learned during the end-to-end training, so there is no need to compute it as a post-processing step.
+Whitening is learned end-to-end during the network training, so there is no need to compute it as a post-processing step.
 For example, to evaluate ResNet101 with GeM and whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, you should run the following script:
 ```
 python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
