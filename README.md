@@ -240,26 +240,38 @@ Multi-scale performance of all available pre-trained networks is given in the fo
 
 ## Versions
 
-### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
+<details>
+  <summary><b>master (devolopment)</b></summary>
+  
+  ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
+  
+  - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
+  - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
+  - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
+  - Added more pre-computed whitening options in imageretrievalnet
+  - Added triplet loss 
+  - Added GeM pooling with multiple parameters (one p per channel/dimensionality)
+  - Added script to enable download on Windows 10 as explained in Issue [#39](https://github.com/filipradenovic/cnnimageretrieval-pytorch/issues/39), courtesy of [SongZRui](https://github.com/SongZRui)
+</details>
 
-- Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
-- Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
-- Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
-- Added more pre-computed whitening options in imageretrievalnet
-- Added triplet loss 
-- Added GeM pooling with multiple parameters (one p per channel/dimensionality)
-- Added script to enable download on Windows 10 as explained in Issue [#39](https://github.com/filipradenovic/cnnimageretrieval-pytorch/issues/39), courtesy of [SongZRui](https://github.com/SongZRui)
+<details>
+  <summary><b>v1.1 (12 Jun 2019)</b></summary>
+  
+  ### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
+  
+  - Migrated code to PyTorch 1.0.0, removed Variable, added torch.no_grad for more speed and less memory at evaluation
+  - Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
+  - Added PowerLaw normalization layer
+  - Added multi-scale testing with any given set of scales, in example test script
+  - Fix related to precision errors of covariance matrix estimation during whitening learning
+  - Fixed minor bugs
+</details>
 
-### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
-
-- Migrated code to PyTorch 1.0.0, removed Variable, added torch.no_grad for more speed and less memory at evaluation
-- Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
-- Added PowerLaw normalization layer
-- Added multi-scale testing with any given set of scales, in example test script
-- Fix related to precision errors of covariance matrix estimation during whitening learning
-- Fixed minor bugs
-
-### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
-
-- First public version
-- Compatible with PyTorch 0.3.0
+<details>
+  <summary><b>v1.0 (09 Jul 2018)</b></summary>
+  
+  ### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
+  
+  - First public version
+  - Compatible with PyTorch 0.3.0
+</details>
