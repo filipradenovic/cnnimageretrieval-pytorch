@@ -298,6 +298,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
+  - Added the [MIT license](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/master/LICENSE)
   - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
   - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
   - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
