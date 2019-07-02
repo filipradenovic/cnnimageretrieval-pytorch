@@ -246,8 +246,6 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   | [gl18-tl-resnet50-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet50-gem-w-83fdc30.pth)  | 63.6 | 78.0 | 40.9 | 57.5 |
   | [gl18-tl-resnet101-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet101-gem-w-a4d43db.pth) | 67.3 | 80.6 | 44.3 | 61.5 |
   | [gl18-tl-resnet152-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet152-gem-w-21278d5.pth) | 68.7 | 79.7 | 44.2 | 60.3 |
-
-  **Note**: Data, networks, and whitening initialization used for training and testing are automatically downloaded when using the example scripts.
   
 </details>
 
