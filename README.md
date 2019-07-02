@@ -1,4 +1,4 @@
-# CNN Image Retrieval in PyTorch: Training and evaluating CNNs for Image Retrieval in PyTorch
+## CNN Image Retrieval in PyTorch: Training and evaluating CNNs for Image Retrieval in PyTorch
 
 This is a Python toolbox that implements the training and testing of the approach described in our papers:
 
@@ -14,7 +14,9 @@ ECCV 2016 [[arXiv](http://arxiv.org/abs/1604.02426)]
 
 <img src="http://cmp.felk.cvut.cz/cnnimageretrieval/img/cnnimageretrieval_network_medium.png" width=\textwidth/>
 
-## What is it?
+---
+
+### What is it?
 
 This code implements:
 
@@ -22,7 +24,9 @@ This code implements:
 1. Learning supervised whitening for CNN image representations
 1. Testing CNN image retrieval on Oxford5k and Paris6k datasets
 
-## Prerequisites
+---
+
+### Prerequisites
 
 In order to run this toolbox you will need:
 
@@ -30,7 +34,9 @@ In order to run this toolbox you will need:
 1. PyTorch deep learning framework (tested with version 1.0.0)
 1. All the rest (data + networks) is automatically downloaded with our scripts
 
-## Usage
+---
+
+### Usage
 
 Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 
@@ -80,7 +86,9 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 
 </details>
 
-##  Papers implementation
+---
+
+###  Papers implementation
 
 <details>
   <summary><b>Training</b></summary><br/>
@@ -170,7 +178,9 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
 </details>
 
-## Networks with whitening learned end-to-end
+---
+
+### Networks with whitening learned end-to-end
 
 <details>
   <summary><b>Training</b></summary><br/>
@@ -244,43 +254,52 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
 </details>
 
+---
 
-## Related publications
+### Related publications
 
-### Training (fine-tuning) convolutional neural networks 
-```
-@article{RTC18,
- title = {Fine-tuning {CNN} Image Retrieval with No Human Annotation},
- author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
- journal = {TPAMI},
- year = {2018}
-}
-```
-```
-@inproceedings{RTC16,
- title = {{CNN} Image Retrieval Learns from {BoW}: Unsupervised Fine-Tuning with Hard Examples},
- author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.},
- booktitle = {ECCV},
- year = {2016}
-}
-```
+<details>
+  <summary><b>Training (fine-tuning) convolutional neural networks</b></summary><br/>
 
-### Revisited benchmarks for Oxford and Paris ('roxford5k' and 'rparis6k')
-```
-@inproceedings{RITAC18,
- author = {Radenovi{\'c}, F. and Iscen, A. and Tolias, G. and Avrithis, Y. and Chum, O.},
- title = {Revisiting Oxford and Paris: Large-Scale Image Retrieval Benchmarking},
- booktitle = {CVPR},
- year = {2018}
-}
-```
+  ```
+  @article{RTC18,
+   title = {Fine-tuning {CNN} Image Retrieval with No Human Annotation},
+   author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.}
+   journal = {TPAMI},
+   year = {2018}
+  }
+  ```
+  ```
+  @inproceedings{RTC16,
+   title = {{CNN} Image Retrieval Learns from {BoW}: Unsupervised Fine-Tuning with Hard Examples},
+   author = {Radenovi{\'c}, F. and Tolias, G. and Chum, O.},
+   booktitle = {ECCV},
+   year = {2016}
+  }
+  ```
 
-## Versions
+</details>
+
+<details>
+  <summary><b>Revisited benchmarks for Oxford and Paris ('roxford5k' and 'rparis6k')</b></summary><br/>
+
+  ```
+  @inproceedings{RITAC18,
+   author = {Radenovi{\'c}, F. and Iscen, A. and Tolias, G. and Avrithis, Y. and Chum, O.},
+   title = {Revisiting Oxford and Paris: Large-Scale Image Retrieval Benchmarking},
+   booktitle = {CVPR},
+   year = {2018}
+  }
+  ```
+  
+</details>
+
+### Versions
 
 <details>
   <summary><b>master (devolopment)</b></summary>
   
-  ### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
+  #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
   - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
   - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
@@ -294,7 +313,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>v1.1 (12 Jun 2019)</b></summary>
   
-  ### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
+  #### [v1.1](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.1) (12 Jun 2019)
   
   - Migrated code to PyTorch 1.0.0, removed Variable, added torch.no_grad for more speed and less memory at evaluation
   - Added rigid grid regional pooling that can be combined with any global pooling method (R-MAC, R-SPoC, R-GeM)
@@ -307,7 +326,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>v1.0 (09 Jul 2018)</b></summary>
   
-  ### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
+  #### [v1.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) (09 Jul 2018)
   
   - First public version
   - Compatible with PyTorch 0.3.0
