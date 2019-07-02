@@ -294,6 +294,8 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
 </details>
 
+---
+
 ### Versions
 
 <details>
