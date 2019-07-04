@@ -153,6 +153,8 @@ class TuplesDataset(data.Dataset):
     def create_epoch_tuples(self, net):
 
         print('>> Creating tuples for an epoch of {}-{}...'.format(self.name, self.mode))
+        print(">>>> used network: ")
+        print(net.meta_repr())
 
         ## ------------------------
         ## SELECTING POSITIVE PAIRS
