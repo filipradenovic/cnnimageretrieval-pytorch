@@ -58,7 +58,7 @@ class TuplesDataset(data.Dataset):
             # setting fullpath for images
             self.images = [cid2filename(db['cids'][i], ims_root) for i in range(len(db['cids']))]
 
-        elif name.startswith('google-landmark-recognition'):
+        elif name.startswith('gl'):
             ## TODO: NOT IMPLEMENTED YET PROPOERLY (WITH AUTOMATIC DOWNLOAD)
 
             # setting up paths
