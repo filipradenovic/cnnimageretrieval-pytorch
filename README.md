@@ -22,7 +22,7 @@ This code implements:
 
 1. Training (fine-tuning) CNN for image retrieval
 1. Learning supervised whitening for CNN image representations
-1. Testing CNN image retrieval on Oxford5k, Paris6k, R-Oxford5k, and R-Paris6k datasets
+1. Testing CNN image retrieval on Oxford and Paris datasets
 
 ---
 
