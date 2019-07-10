@@ -120,7 +120,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>Testing our pretrained networks</b></summary><br/>
 
-  We provide the pretrained networks trained using the same parameters as in our TPAMI 2018 paper, with precomputed whitening. 
+  Pretrained networks trained using the same parameters as in our TPAMI 2018 paper are provided, with precomputed post-processing whitening step. 
   To evaluate them run:
   ```
   python3 -m cirtorch.examples.test --gpu-id '0' --network-path 'retrievalSfM120k-resnet101-gem' 
