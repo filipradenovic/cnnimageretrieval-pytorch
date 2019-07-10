@@ -185,7 +185,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>Training</b></summary><br/>
   
-  Our code can be used to fine-tune networks with whitening added as an FC layer after the pooling.
+  This toolbox can be used to fine-tune networks with end-to-end whitening, i.e., whitening added as an FC layer after the pooling and learned together with the convolutions.
   To train such a setup you should run the following commands (the performance will be evaluated every 5 epochs on `roxford5k` and `rparis6k`):
   ```
   python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
@@ -219,7 +219,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   - Whitening FC layer is initialized in a supervised manner using our training data and off-the-shelf features.
   - Whitening FC layer is precomputed for popular architectures and pooling methods, see [imageretrievalnet.py#L50](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/474b1fe61ff0e8a6f076ef58f7334cf33d7a3773/cirtorch/networks/imageretrievalnet.py#L50) for the full list of precomputed FC layers.
-  - When whitening is added in the fine-tuning procedure, we notice that the performance is highest if the images are with a similar high-resolution at train and test time. 
+  - When whitening is added in the fine-tuning procedure, the performance is highest if the images are with a similar high-resolution at train and test time. 
   - When whitening is added, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss. In this scenario, triplet loss performs slightly better. 
   - Additional tunning of hyper-parameters can be performed to achieve higher performance or faster training. Note that, in this example, `--neg-num` and `--image-size` hyper-parameters are chosen such that the training can be performed on a single GPU with `16 GB` of memory. 
     
@@ -228,9 +228,9 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>Testing our pretrained networks with whitening learned end-to-end</b></summary><br/>
 
-  We also provide our end-to-end pre-trained networks, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
+  Pretrained networks with whitening learned end-to-end are provided, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
   Whitening is learned end-to-end during the network training, so there is no need to compute it as a post-processing step, although one can do that, as well.
-  For example, multi-scale evaluation of ResNet101 with GeM and whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
+  For example, multi-scale evaluation of ResNet101 with GeM and end-to-end whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
   ```
   python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
               --datasets 'roxford5k,rparis6k' --multiscale '[1, 2**(1/2), 1/2**(1/2)]'
