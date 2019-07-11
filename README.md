@@ -228,9 +228,9 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 <details>
   <summary><b>Testing our pretrained networks with whitening learned end-to-end</b></summary><br/>
 
-  Pretrained networks with whitening learned end-to-end are provided, trained both on `retrieval-SfM-120k (rSfM120k)` and [`Google Landmarks 2018 (GL18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
+  Pretrained networks with whitening learned end-to-end are provided, trained both on `retrieval-SfM-120k (rSfM120k)` and [`google-landmarks-2018 (gl18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
   Whitening is learned end-to-end during the network training, so there is no need to compute it as a post-processing step, although one can do that, as well.
-  For example, multi-scale evaluation of ResNet101 with GeM and end-to-end whitening trained on `Google Landmarks 2018 (GL18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
+  For example, multi-scale evaluation of ResNet101 with GeM and end-to-end whitening trained on `google-landmarks-2018 (gl18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
   ```
   python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
               --datasets 'roxford5k,rparis6k' --multiscale '[1, 2**(1/2), 1/2**(1/2)]'
@@ -299,7 +299,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
   - Added the [MIT license](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/master/LICENSE)
-  - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `Google Landmarks 2018` train datasets
+  - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `google-landmarks-2018` train datasets
   - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
   - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
   - Added more pre-computed whitening options in imageretrievalnet
