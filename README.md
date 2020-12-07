@@ -299,8 +299,12 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
   - No change compared to [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) yet
+</details>
   
-  #### [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) (07 Dec 2019)
+<details>
+  <summary><b>v1.2 (07 Dec 2020)</b></summary>
+  
+  #### [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) (07 Dec 2020)
   
   - Added example script for descriptor extraction with different publicly available models
   - Added the [MIT license](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/master/LICENSE)
