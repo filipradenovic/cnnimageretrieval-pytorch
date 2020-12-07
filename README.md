@@ -298,6 +298,10 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
+  - No change compared to [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) yet
+  
+  #### [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) (07 Dec 2019)
+  
   - Added example script for descriptor extraction with different publicly available models
   - Added the [MIT license](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/master/LICENSE)
   - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `google-landmarks-2018` train datasets
