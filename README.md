@@ -38,7 +38,9 @@ In order to run this toolbox you will need:
 
 ### Usage
 
-Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
+Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```. 
+You can install package with `pip3 install .` if you need. 
+Make sure to have desired PyTorch and torchvision packages installed.  
 
 <details>
   <summary><b>Training</b></summary><br/>
