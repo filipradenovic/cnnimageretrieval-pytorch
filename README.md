@@ -21,7 +21,7 @@ ECCV 2016 [[arXiv](http://arxiv.org/abs/1604.02426)]
 This code implements:
 
 1. Training (fine-tuning) CNN for image retrieval
-1. Learning supervised whitening for CNN image representations
+1. Learning supervised whitening, as post-processing, for global image descriptors
 1. Testing CNN image retrieval on Oxford and Paris datasets
 
 ---
@@ -102,7 +102,7 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
               --pool-size=22000 --batch-size 5 --image-size 362
   ```
 
-  Networks can be evaluated with learned whitening after each epoch. To achieve this run the following command. 
+  Networks can be evaluated with learned whitening after each epoch (whitening is estimated at the end of the epoch). To achieve this run the following command. 
   Note that this will significantly slow down the entire training procedure, and you can evaluate networks with learned whitening later on using the example test script.
 
   ```
@@ -180,12 +180,12 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
 
 ---
 
-### Networks with whitening learned end-to-end
+### Networks with projection (FC) layer after global pooling
 
 <details>
   <summary><b>Training</b></summary><br/>
   
-  This toolbox can be used to fine-tune networks with end-to-end whitening, i.e., whitening added as an FC layer after the pooling and learned together with the convolutions.
+  An alternative architecture includes a learnable FC (projection) layer after the global pooling. It is important to initialize the parameters of this layer with the result of learned whitening. 
   To train such a setup you should run the following commands (the performance will be evaluated every 5 epochs on `roxford5k` and `rparis6k`):
   ```
   python3 -m cirtorch.examples.train YOUR_EXPORT_DIR --gpu-id '0' --training-dataset 'retrieval-SfM-120k' 
@@ -217,20 +217,20 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   Implementation details:
   
-  - Whitening FC layer is initialized in a supervised manner using our training data and off-the-shelf features.
-  - Whitening FC layer is precomputed for popular architectures and pooling methods, see [imageretrievalnet.py#L50](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/474b1fe61ff0e8a6f076ef58f7334cf33d7a3773/cirtorch/networks/imageretrievalnet.py#L50) for the full list of precomputed FC layers.
-  - When whitening is added in the fine-tuning procedure, the performance is highest if the images are with a similar high-resolution at train and test time. 
-  - When whitening is added, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss. In this scenario, triplet loss performs slightly better. 
+  - the FC layer is initialized with the result of whitening learned in a supervised manner using our training data and off-the-shelf features.
+  - the Whitening for this FC layer is precomputed for popular architectures and pooling methods, see [imageretrievalnet.py#L50](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/474b1fe61ff0e8a6f076ef58f7334cf33d7a3773/cirtorch/networks/imageretrievalnet.py#L50) for the full list of precomputed FC layers.
+  - When this FC layer is added in the fine-tuning procedure, the performance is highest if the images are with a similar high-resolution at train and test time. 
+  - When this FC layer is added, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss. In this scenario, triplet loss performs slightly better. 
   - Additional tunning of hyper-parameters can be performed to achieve higher performance or faster training. Note that, in this example, `--neg-num` and `--image-size` hyper-parameters are chosen such that the training can be performed on a single GPU with `16 GB` of memory. 
     
 </details>
 
 <details>
-  <summary><b>Testing our pretrained networks with whitening learned end-to-end</b></summary><br/>
+  <summary><b>Testing our pretrained networks with projection layer</b></summary><br/>
 
-  Pretrained networks with whitening learned end-to-end are provided, trained both on `retrieval-SfM-120k (rSfM120k)` and [`google-landmarks-2018 (gl18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
-  Whitening is learned end-to-end during the network training, so there is no need to compute it as a post-processing step, although one can do that, as well.
-  For example, multi-scale evaluation of ResNet101 with GeM and end-to-end whitening trained on `google-landmarks-2018 (gl18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
+  Pretrained networks with projection layer are provided, trained both on `retrieval-SfM-120k (rSfM120k)` and [`google-landmarks-2018 (gl18)`](https://www.kaggle.com/google/google-landmarks-dataset) train datasets.
+  For this architecture, there is no need to compute whitening as post-processing step (typically the performance boost is insignificant), although one can do that, as well.
+  For example, multi-scale evaluation of ResNet101 with GeM with projection layer trained on `google-landmarks-2018 (gl18)` dataset using high-resolution images and a triplet loss, is performed with the following script:
   ```
   python3 -m cirtorch.examples.test_e2e --gpu-id '0' --network 'gl18-tl-resnet101-gem-w' 
               --datasets 'roxford5k,rparis6k' --multiscale '[1, 2**(1/2), 1/2**(1/2)]'
@@ -308,8 +308,8 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   - Added example script for descriptor extraction with different publicly available models
   - Added the [MIT license](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/master/LICENSE)
-  - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with end-to-end whitening, trained on both `retrieval-SfM-120` and `google-landmarks-2018` train datasets
-  - Added a new example test script without post-processing, for networks that are trained in a fully end-to-end manner, with whitening as FC layer learned during training
+  - Added mutli-scale performance on `roxford5k` and `rparis6k` for new pre-trained networks with projection, trained on both `retrieval-SfM-120` and `google-landmarks-2018` train datasets
+  - Added a new example test script without post-processing, for networks that include projection layer
   - Added few things in train example: GeMmp pooling, triplet loss, small trick to handle really large batches
   - Added more pre-computed whitening options in imageretrievalnet
   - Added triplet loss 
