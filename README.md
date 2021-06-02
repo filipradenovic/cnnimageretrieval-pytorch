@@ -217,8 +217,8 @@ Navigate (```cd```) to the root of the toolbox ```[YOUR_CIRTORCH_ROOT]```.
   
   Implementation details:
   
-  - the FC layer is initialized with the result of whitening learned in a supervised manner using our training data and off-the-shelf features.
-  - the Whitening for this FC layer is precomputed for popular architectures and pooling methods, see [imageretrievalnet.py#L50](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/474b1fe61ff0e8a6f076ef58f7334cf33d7a3773/cirtorch/networks/imageretrievalnet.py#L50) for the full list of precomputed FC layers.
+  - The FC layer is initialized with the result of whitening learned in a supervised manner using our training data and off-the-shelf features.
+  - The whitening for this FC layer is precomputed for popular architectures and pooling methods, see [imageretrievalnet.py#L50](https://github.com/filipradenovic/cnnimageretrieval-pytorch/blob/474b1fe61ff0e8a6f076ef58f7334cf33d7a3773/cirtorch/networks/imageretrievalnet.py#L50) for the full list of precomputed FC layers.
   - When this FC layer is added in the fine-tuning procedure, the performance is highest if the images are with a similar high-resolution at train and test time. 
   - When this FC layer is added, the distribution of pairwise distances changes significantly, so roughly twice larger margin should be used for contrastive loss. In this scenario, triplet loss performs slightly better. 
   - Additional tunning of hyper-parameters can be performed to achieve higher performance or faster training. Note that, in this example, `--neg-num` and `--image-size` hyper-parameters are chosen such that the training can be performed on a single GPU with `16 GB` of memory. 
