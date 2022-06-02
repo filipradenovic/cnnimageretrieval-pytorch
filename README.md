@@ -65,7 +65,7 @@ Make sure to have desired PyTorch and torchvision packages installed.
   python3 -m cirtorch.examples.train -h
   ```
 
-  **Note**: Data and networks used for training and testing are automatically downloaded when using the example script.
+  > **Note**: Data and networks used for training and testing are automatically downloaded when using the example script.
   
 </details>
 
@@ -84,7 +84,7 @@ Make sure to have desired PyTorch and torchvision packages installed.
   python3 -m cirtorch.examples.test -h
   ```
 
-  **Note**: Data used for testing are automatically downloaded when using the example script.
+  > **Note**: Data used for testing are automatically downloaded when using the example script.
 
 </details>
 
@@ -115,7 +115,7 @@ Make sure to have desired PyTorch and torchvision packages installed.
               --batch-size 5 --image-size 362
   ```
 
-  **Note**: Adjusted (lower) learning rate is set to achieve similar performance as with [MatConvNet](https://github.com/filipradenovic/cnnimageretrieval) and [PyTorch-0.3.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) implementation of the training.
+  > **Note**: Adjusted (lower) learning rate is set to achieve similar performance as with [MatConvNet](https://github.com/filipradenovic/cnnimageretrieval) and [PyTorch-0.3.0](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.0) implementation of the training.
 
 </details>
 
@@ -145,6 +145,8 @@ Make sure to have desired PyTorch and torchvision packages installed.
   | VGG16-GeM (PyTorch) | 87.3 | 87.8 | 60.9 | 69.3 | 32.9 | 44.2 |
   | ResNet101-GeM (MatConvNet) | 87.8 | 92.7 | 64.7 | 77.2 | 38.5 | 56.3 |
   | ResNet101-GeM (PyTorch) | 88.2 | 92.5 | 65.4 | 76.7 | 40.1 | 55.2 |
+  
+  > **Note** (June 2022): We updated download files for [Oxford 5k](https://www.robots.ox.ac.uk/~vgg/data/oxbuildings/) and [Paris 6k](https://www.robots.ox.ac.uk/~vgg/data/parisbuildings/) images to use images with blurred faces as suggested by the original dataset owners. Bear in mind, "experiments have shown that one can use the face-blurred version for benchmarking image retrieval with negligible loss of accuracy".
 
 </details>
 
@@ -248,6 +250,8 @@ Make sure to have desired PyTorch and torchvision packages installed.
   | [gl18-tl-resnet50-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet50-gem-w-83fdc30.pth)  | 63.6 | 78.0 | 40.9 | 57.5 |
   | [gl18-tl-resnet101-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet101-gem-w-a4d43db.pth) | 67.3 | 80.6 | 44.3 | 61.5 |
   | [gl18-tl-resnet152-gem-w](http://cmp.felk.cvut.cz/cnnimageretrieval/data/networks/gl18/gl18-tl-resnet152-gem-w-21278d5.pth) | 68.7 | 79.7 | 44.2 | 60.3 |
+  
+  > **Note** (June 2022): We updated download files for [Oxford 5k](https://www.robots.ox.ac.uk/~vgg/data/oxbuildings/) and [Paris 6k](https://www.robots.ox.ac.uk/~vgg/data/parisbuildings/) images to use images with blurred faces as suggested by the original dataset owners. Bear in mind, "experiments have shown that one can use the face-blurred version for benchmarking image retrieval with negligible loss of accuracy".
   
 </details>
 
