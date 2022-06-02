@@ -300,7 +300,8 @@ Make sure to have desired PyTorch and torchvision packages installed.
   
   #### [master](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/master) (development)
   
-  - No change compared to [v1.2](https://github.com/filipradenovic/cnnimageretrieval-pytorch/tree/v1.2) yet
+  - Merged pull request #78 that fixes broken download links
+  - Merged pull request #56 that adds setup file
 </details>
   
 <details>
