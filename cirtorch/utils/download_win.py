@@ -27,17 +27,17 @@ def download_test(data_dir):
         dataset = datasets[di]
 
         if dataset == 'oxford5k':
-            src_dir = 'http://www.robots.ox.ac.uk/~vgg/data/oxbuildings'
-            dl_files = ['oxbuild_images.tgz']
+            src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/oxbuildings'
+            dl_files = ['oxbuild_images-v1.tgz']
         elif dataset == 'paris6k':
-            src_dir = 'http://www.robots.ox.ac.uk/~vgg/data/parisbuildings'
-            dl_files = ['paris_1.tgz', 'paris_2.tgz']
+            src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/parisbuildings'
+            dl_files = ['paris_1-v1.tgz', 'paris_2-v1.tgz']
         elif dataset == 'roxford5k':
-            src_dir = 'http://www.robots.ox.ac.uk/~vgg/data/oxbuildings'
-            dl_files = ['oxbuild_images.tgz']
+            src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/oxbuildings'
+            dl_files = ['oxbuild_images-v1.tgz']
         elif dataset == 'rparis6k':
-            src_dir = 'http://www.robots.ox.ac.uk/~vgg/data/parisbuildings'
-            dl_files = ['paris_1.tgz', 'paris_2.tgz']
+            src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/parisbuildings'
+            dl_files = ['paris_1-v1.tgz', 'paris_2-v1.tgz']
         else:
             raise ValueError('Unknown dataset: {}!'.format(dataset))
 
